@@ -33,12 +33,6 @@ class Vertex(Base):
         self.label = label
         super(Vertex, self).__init__(properties)
 
-    def fuzzy_index(self, word):
-        self._graphdb._storage.trigrams_vertices.index(word, self.uid)
-
-    def fuzzy_delete(self, word):
-        self._graphdb._storage.trigrams_vertices.delete(word, self.uid)
-
     def incomings(self):
         edges = self._graphdb._storage.edges.incomings(self.uid)
         # XXX: this method must be with care, since it fully consume
