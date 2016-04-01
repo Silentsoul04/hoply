@@ -15,7 +15,7 @@ AjguDB wants to be a fast enough python graph database for exploring connected d
 Dependencies
 ============
 
-- [wiredtiger 2.6.1](http://source.wiredtiger.com/)
+- [wiredtiger 2.8](http://source.wiredtiger.com/)
 
 ChangeLog
 =========
@@ -23,9 +23,10 @@ ChangeLog
 0.7
 ---
 
-- **storage: only wiredtiger 2.6.1 backend storage is supported**
+- **storage: only wiredtiger 2.8 backend storage is supported**
 - ajgudb: you can threat ``AjguDB`` as simple key/value store via its methods
   ``AjguDB.get(key)``, ``AjguDB.set(key, value)`` and ``AjguDB.remove(key)``
+- rewrite gremlin querying
 - gremlin: ``select`` is renamed ``where`` because it match the SQL terminology.
   SQL's ``FROM`` is ``vertices`` and ``edges`` steps.
 - storage: rework the backend to use less write and similar read operations
