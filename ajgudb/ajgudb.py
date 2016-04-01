@@ -74,12 +74,6 @@ class Edge(Base):
         self._end = end
         super(Edge, self).__init__(properties)
 
-    def fuzzy_index(self, word):
-        self._graphdb._storage.trigrams_edges.index(word, self.uid)
-
-    def fuzzy_delete(self, word):
-        self._graphdb._storage.trigrams_edges.delete(word, self.uid)
-
     def start(self):
         return self._graphdb.vertex.get(self._start)
 
@@ -100,9 +94,6 @@ class VertexManager(object):
 
     def key_index(self, name):
         self._graphdb._storage.vertices._indices.append(name)
-
-    def fuzzy_search(self, word, limit=10):
-        return self._graphdb._storage.trigrams_vertices.search(word, limit)
 
     def create(self, label, **properties):
         uid = self._graphdb._storage.vertices.add(label, properties)
@@ -142,9 +133,6 @@ class EdgeManager(object):
 
     def key_index(self, name):
         self._graphdb._storage.edges._indices.append(name)
-
-    def fuzzy_search(self, word, limit=10):
-        return self._graphdb._storage.trigrams_edges.search(word, limit)
 
     def get(self, uid):
         start, label, end, properties = self._graphdb._storage.edges.get(uid)
