@@ -20,10 +20,15 @@ Dependencies
 ChangeLog
 =========
 
+0.7.1
+-----
+
+- small typofix in README...
+
 0.7
 ---
 
-- **storage: only wiredtiger 2.8 backend storage is supported**
+- **storage: only wiredtiger 2.6.1 backend storage is supported**
 - ajgudb: you can threat ``AjguDB`` as simple key/value store via its methods
   ``AjguDB.get(key)``, ``AjguDB.set(key, value)`` and ``AjguDB.remove(key)``
 - rewrite gremlin querying
