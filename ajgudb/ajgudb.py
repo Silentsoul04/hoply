@@ -153,13 +153,6 @@ class EdgeManager(object):
         else:
             return element
 
-    def get_or_create(self, label, **properties):
-        element = self.one(label, **properties)
-        if element:
-            return element
-        else:
-            return self.vertex(label, **properties)
-
 
 class AjguDB(object):
 
