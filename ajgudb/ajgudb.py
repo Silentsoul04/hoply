@@ -1,34 +1,17 @@
-# AjuDB - leveldb powered graph database
+# AjuDB - wiredtiger powered graph database
 # Copyright (C) 2015 Amirouche Boubekki <amirouche@hypermove.net>
-
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2.1 of the License, or (at your option) any later version.
-
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-# MA  02110-1301  USA
-from utils import AjguDBException
-
-from leveldb import LevelDBStorage
+from .storage import Storage
 
 
 class Base(dict):
 
-    def delete(self):
-        self._graphdb._tuples.delete(self.uid)
-
     def __eq__(self, other):
-        if isinstance(other, Base):
+        if isinstance(other, type(self)):
             return self.uid == other.uid
         return False
+
+    def __ne__(self, other):
+        return not (self == other)
 
     def __repr__(self):
         return '<%s %s>' % (type(self).__name__, self.uid)
@@ -42,127 +25,145 @@ class Base(dict):
 
 class Vertex(Base):
 
-    def __init__(self, graphdb, uid, properties):
+    __slots__ = ('_graphdb', 'uid', 'label')
+
+    def __init__(self, graphdb, uid, label, properties):
         self._graphdb = graphdb
         self.uid = uid
+        self.label = label
         super(Vertex, self).__init__(properties)
 
-    def _iter_edges(self, _vertex):
-        key = '_meta_%s' % _vertex
-        records = self._graphdb._tuples.query(key, self.uid)
-        for _, _, uid in records:
-            yield self._graphdb.get(uid)
-
     def incomings(self):
-        return self._iter_edges('end')
+        edges = self._graphdb._storage.edges.incomings(self.uid)
+        # XXX: this method must be with care, since it fully consume
+        # the generator (to avoid cursor leak).
+        return map(self._graphdb.edge.get, edges)
 
     def outgoings(self):
-        return self._iter_edges('start')
+        edges = self._graphdb._storage.edges.outgoings(self.uid)
+        # this method must be with care, since it fully consume
+        # the generator (to avoid cursor leak).
+        return map(self._graphdb.edge.get, edges)
+
+    def link(self, label, end, **properties):
+        uid = self._graphdb._storage.edges.add(
+            self.uid,
+            label,
+            end.uid,
+            properties
+        )
+        return Edge(self._graphdb, uid, self.uid, label, end.uid, properties)
 
     def save(self):
-        self._graphdb._tuples.update(
-            self.uid,
-            _meta_type='vertex',
-            **self
-        )
-        return self
-
-    def link(self, end, **properties):
-        properties['_meta_start'] = self.uid
-        properties['_meta_end'] = end.uid
-        uid = self._graphdb._uid()
-        self._graphdb._tuples.add(uid, _meta_type='edge', **properties)
-        return Edge(self._graphdb, uid, properties)
+        self._graphdb._storage.vertices.update(self.uid, self)
 
     def delete(self):
-        for incoming in self.incomings():
-            incoming.delete()
-        for outgoing in self.outgoings():
-            outgoing.delete()
-        super(Vertex, self).delete()
+        map(lambda x: x.delete(), self.incomings())
+        map(lambda x: x.delete(), self.outgoings())
+        self._graphdb._storage.vertices.delete(self.uid)
 
 
 class Edge(Base):
 
-    def __init__(self, graphdb, uid, properties):
+    __slots__ = ('_graphdb', 'uid', '_start', 'label', '_end')
+
+    def __init__(self, graphdb, uid, start, label, end, properties):
         self._graphdb = graphdb
         self.uid = uid
-        self._start = properties.pop('_meta_start')
-        self._end = properties.pop('_meta_end')
+        self._start = start
+        self._end = end
         super(Edge, self).__init__(properties)
 
     def start(self):
-        properties = self._graphdb._tuples.get(self._start)
-        return Vertex(self._graphdb, self._start, properties)
+        return self._graphdb.vertex.get(self._start)
 
     def end(self):
-        properties = self._graphdb._tuples.get(self._end)
-        return Vertex(self._graphdb, self._end, properties)
+        return self._graphdb.vertex.get(self._end)
 
     def save(self):
-        self._graphdb._tuples.update(
-            self.uid,
-            _meta_type='edge',
-            _meta_start=self._start,
-            _meta_end=self._end,
-            **self
-        )
-        return self
+        self._graphdb._storage.edges.update(self.uid, self)
+
+    def delete(self):
+        self._graphdb._storage.edges.delete(self.uid)
 
 
-class AjguDB(object):
+class VertexManager(object):
 
-    def __init__(self, path, storage_class=LevelDBStorage):
-        self._tuples = storage_class(path)
+    def __init__(self, graphdb):
+        self._graphdb = graphdb
 
-    def close(self):
-        self._tuples.close()
+    def key_index(self, name):
+        self._graphdb._storage.vertices._indices.append(name)
 
-    def _uid(self):
-        try:
-            counter = self._tuples.get(0)['counter']
-        except KeyError:
-            self._tuples.add(0, counter=1)
-            return 1
-        else:
-            counter += 1
-            self._tuples.update(0, counter=counter)
-            return counter
+    def create(self, label, **properties):
+        uid = self._graphdb._storage.vertices.add(label, properties)
+        return Vertex(self._graphdb, uid, label, properties)
 
     def get(self, uid):
-        properties = self._tuples.get(uid)
-        if properties:
-            meta_type = properties.pop('_meta_type')
-            if meta_type == 'vertex':
-                return Vertex(self, uid, properties)
-            else:
-                return Edge(self, uid, properties)
-        else:
-            raise AjguDBException('not found %s' % uid)
+        label, properties = self._graphdb._storage.vertices.get(uid)
+        return Vertex(self._graphdb, uid, label, properties)
 
-    def vertex(self, **properties):
-        uid = self._uid()
-        self._tuples.add(uid, _meta_type='vertex', **properties)
-        return Vertex(self, uid, properties)
-
-    def get_or_create(self, **properties):
-        element = self.one(**properties)
-        if element:
-            return element
-        else:
-            return self.vertex(**properties)
-
-    def query(self, *steps):
-        from gremlin import query
-        return lambda iterator=None: query(*steps)(self, iterator)
-
-    def one(self, **properties):
-        from gremlin import select
-        from gremlin import get
-        query = self.query(select(**properties), get)
+    def one(self, label, **properties):
+        import gremlin
+        query = gremlin.query(
+            gremlin.vertices(label),
+            gremlin.where(**properties),
+            gremlin.limit(1),
+            gremlin.get
+        )
         try:
-            element = query()[0]
+            element = query(self._graphdb)[0]
         except IndexError:
             return None
         else:
             return element
+
+    def get_or_create(self, label, **properties):
+        element = self.one(label, **properties)
+        if element:
+            return element
+        else:
+            return self._graphdb.vertex.create(label, **properties)
+
+
+class EdgeManager(object):
+
+    def __init__(self, graphdb):
+        self._graphdb = graphdb
+
+    def key_index(self, name):
+        self._graphdb._storage.edges._indices.append(name)
+
+    def get(self, uid):
+        start, label, end, properties = self._graphdb._storage.edges.get(uid)
+        return Edge(self._graphdb, uid, start, label, end, properties)
+
+    def one(self, label, **properties):
+        import gremlin
+        query = gremlin.query(
+            gremlin.edges(label),
+            gremlin.where(**properties),
+            gremlin.limit(1),
+            gremlin.get
+        )
+        try:
+            element = query(self._graphdb)[0]
+        except IndexError:
+            return None
+        else:
+            return element
+
+
+class AjguDB(object):
+
+    def __init__(self, path):
+        self._storage = Storage(path)
+        self.vertex = VertexManager(self)
+        self.edge = EdgeManager(self)
+
+        self.get = self._storage.collection.get
+        self.set = self._storage.collection.set
+        self.remove = self._storage.collection.remove
+
+    def close(self):
+        self._storage.close()

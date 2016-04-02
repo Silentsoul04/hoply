@@ -1,6 +1,2 @@
-all:
-	@echo "Try: make check"
-
-
 check:
-	nose2 -v
+	nose2 -C --coverage ajgudb --coverage-report html
