@@ -29,9 +29,9 @@ message0 = graph.vertex.create('message')
 message0['body'] = '/me learning ajgudb'
 message0.save()
 
-message0 = graph.vertex.create('message')
-message0['body'] = 'This how you create vertex'
-message0.save()
+message1 = graph.vertex.create('message')
+message1['body'] = 'This how you create vertex'
+message1.save()
 
 # who say that?
 user = graph.vertex.create('user')
