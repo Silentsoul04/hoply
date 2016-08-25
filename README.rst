@@ -20,6 +20,12 @@ Dependencies
 ChangeLog
 =========
 
+master
+------
+
+- more tests, coverage is 80%
+- make it work with wiredtiger develop branch
+
 0.7.1
 -----
 

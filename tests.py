@@ -51,6 +51,17 @@ class DatabaseTestCase(TestCase):
         v2 = self.graph.vertex.get_or_create(label='test', key='value')
         self.assertEqual(v1, v2)
 
+    def test_edge_one(self):
+        e2 = self.graph.edge.one('test', key='value')
+        self.assertEqual(e2, None)
+
+    def test_edge_one_2(self):
+        start = self.graph.vertex.create(label='test')
+        end = self.graph.vertex.create(label='test')
+        start.link('test', end)
+        e1 = self.graph.edge.one('test')
+        self.assertTrue(e1)
+
     def test_create_and_get_vertex(self):
         v1 = self.graph.vertex.create('test')
         v2 = self.graph.vertex.get(v1.uid)
@@ -167,6 +178,22 @@ class TestGremlin(TestCase):
         query = gremlin.query(gremlin.outgoings, gremlin.where(ok=True))
         count = len(list(query(self.graph, seed)))
         self.assertEqual(count, 2)
+
+    def test_where_2(self):
+        one = self.graph.vertex.create('example', key='value')
+        two = self.graph.vertex.create('example', key='value')
+        three = self.graph.vertex.create('example', key='value')
+
+        label = 'example'
+        properties = dict(key='value')
+
+        query = gremlin.query(
+            gremlin.vertices(label),
+            gremlin.where(**properties),
+            gremlin.get
+        )
+
+        self.assertEqual(len(list(query(self.graph))), 3)
 
     def test_skip(self):
         seed = self.graph.vertex.create('seed')

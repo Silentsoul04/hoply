@@ -44,10 +44,10 @@ def edges(label=None):
         """Iterator over all vertices"""
         if label:
             for uid in graphdb._storage.edges.identifiers(label):
-                yield GremlinResult(uid, None, VERTEX)
+                yield GremlinResult(uid, None, EDGE)
         else:
             for uid in graphdb._storage.edges.all():
-                yield GremlinResult(uid, None, VERTEX)
+                yield GremlinResult(uid, None, EDGE)
     return step
 
 
@@ -84,7 +84,7 @@ def where(**kwargs):
                     _, properties = graphdb._storage.vertices.get(item.value)
                 else:
                     _, _, _, properties = graphdb._storage.edges.get(item.value)
-                if properties[key] != value:
+                if properties.get(key) != value:
                     break
             else:
                 yield item
@@ -288,6 +288,3 @@ def scatter(graphdb, iterator):
     for item in iterator:
         for other in item.value:
             yield GremlinResult(other, item, None)
-
-
-MockBase = namedtuple('MockBase', ('uid', ))

@@ -33,9 +33,9 @@ class Vertices(object):
         # index for label->vertex query
         session.create(
             'index:vertices:labels',
-            'columns=(label,id)'
+            'columns=(label)'
         )
-        self._index = session.open_cursor('index:vertices:labels')
+        self._index = session.open_cursor('index:vertices:labels(id)')
 
         # store indexed property keys
         self._indices = list()
@@ -47,31 +47,30 @@ class Vertices(object):
 
     def identifiers(self, label):
         """Look vertices with the given `label`"""
-        self._index.set_key(label, 0)
+        self._index.set_key(label)
 
         # lookup the label
-        code = self._index.search_near()
+        code = self._index.search()
+        
+        # not found
         if code == WT_NOT_FOUND:
             self._index.reset()
             return list()
-        elif code == -1:
-            if self._index.next() == WT_NOT_FOUND:
-                return list()
 
         # iterate over the results and return it as a list
         def iterator():
             while True:
-                other, uid = self._index.get_key()
-                if other == label:
-                    yield uid
+                key = self._index.get_key()
+                if key == label:
+                    yield self._index.get_value()
                     if self._index.next() == WT_NOT_FOUND:
-                        self._index.reset()
                         break
                 else:
-                    self._index.reset()
                     break
 
-        return list(iterator())
+        out = list(iterator())
+        self._index.reset()
+        return out       
 
     def keys(self, key, value):
         # lookup the label
@@ -197,23 +196,23 @@ class Edges(object):
         # cursor for label->edge query
         session.create(
             'index:edges:labels',
-            'columns=(label,id)'
+            'columns=(label)'
         )
-        self._index = session.open_cursor('index:edges:labels')
+        self._index = session.open_cursor('index:edges:labels(id)')
 
         # cursor for `outgoing vertex`->edge
         session.create(
             'index:edges:outgoings',
-            'columns=(start,id)'
+            'columns=(start)'
         )
-        self._outgoings = session.open_cursor('index:edges:outgoings')
+        self._outgoings = session.open_cursor('index:edges:outgoings(id)')
 
         # cursor for `incomings vertex`->edge
         session.create(
             'index:edges:incomings',
-            'columns=(end,id)'
+            'columns=(end)'
         )
-        self._incomings = session.open_cursor('index:edges:incomings')
+        self._incomings = session.open_cursor('index:edges:incomings(id)')
 
         # store indexed property keys
         self._indices = list()
@@ -225,23 +224,20 @@ class Edges(object):
 
     def identifiers(self, label):
         """Look for edges which have the given `label`"""
-        # lookup label
-        # XXX: same code as `Vertices`
         self._index.set_key(label)
-        code = self._index.search_near()
+        code = self._index.search()
+
+        # not found
         if code == WT_NOT_FOUND:
             self._index.reset()
             return list()
-        elif code == -1:
-            if self._index.next() == WT_NOT_FOUND:
-                return list()
 
         # iterate over the results and return it as a list
         def iterator():
             while True:
-                other, uid = self._index.get_key()
-                if other == label:
-                    yield uid
+                key = self._index.get_key()
+                if key == label:
+                    yield self._index.get_value()
                     if self._index.next() == WT_NOT_FOUND:
                         self._index.reset()
                         break
@@ -277,61 +273,63 @@ class Edges(object):
 
         return list(iterator())
 
-    def incomings(self, end):
-        """Look for edges which end at the vertex with the given `uid`"""
-        # lookup vertex
-        # XXX: same code as `Vertices`
-        self._incomings.set_key(end, 0)
-        code = self._incomings.search_near()
-        if code == WT_NOT_FOUND:
-            self._incomings.reset()
-            return list()
-        elif code == -1:
-            if self._incomings.next() == WT_NOT_FOUND:
-                return list()
-
-        # iterate over the results and return it as a list
-        def iterator():
-            while True:
-                other, uid = self._incomings.get_key()
-                if other == end:
-                    yield uid
-                    if self._incomings.next() == WT_NOT_FOUND:
-                        self._incomings.reset()
-                        break
-                else:
-                    self._incomings.reset()
-                    break
-
-        return list(iterator())
-
     def outgoings(self, start):
         """Look for edges which start at the vertex with the given `uid`"""
-        # lookup vertex
-        # XXX: same code as `Vertices`
-        self._outgoings.set_key(start, 0)
-        code = self._outgoings.search_near()
+
+        # look up `start` vertex in the `outgoings` index
+        self._outgoings.set_key(start)
+        code = self._outgoings.search()
+
+        # not found return empty list
         if code == WT_NOT_FOUND:
             self._outgoings.reset()
             return list()
-        elif code == -1:
-            if self._outgoings.next() == WT_NOT_FOUND:
-                return list()
 
         # iterate over the results and return it as a list
-        def iterator():
+        def rangex():
             while True:
-                other, uid = self._outgoings.get_key()
-                if other == start:
-                    yield uid
+                key = self._outgoings.get_key()
+                if key == start:
+                    yield self._outgoings.get_value()
                     if self._outgoings.next() == WT_NOT_FOUND:
-                        self._outgoings.reset()
                         break
                 else:
-                    self._outgoings.reset()
+                    # we got further down the table where key of the
+                    # cursor can not be `start` anymore. Otherwise
+                    # said the outgoings edges of another vertex
                     break
+        out = list(rangex())
+        self._outgoings.reset()
+        return out
 
-        return list(iterator())
+    def incomings(self, end):
+        """Look for edges which end at the vertex with the given `uid`"""
+
+        # look up `end` vertex in the `incomings` index
+        self._incomings.set_key(end)
+        code = self._incomings.search()
+
+        # not found return empty list
+        if code == WT_NOT_FOUND:
+            self._incomings.reset()
+            return list()
+
+        # iterate over the results and return it as a list
+        def rangex():
+            while True:
+                key = self._incomings.get_key()
+                if key == end:
+                    yield self._incomings.get_value()
+                    if self._incomings.next() == WT_NOT_FOUND:
+                        break
+                else:
+                    # we got further down the table where key of the
+                    # cursor can not be `end` anymore. Otherwise
+                    # said the incomings edges of another vertex
+                    break
+        out = list(rangex())
+        self._incomings.reset()
+        return out
 
     def add(self, start, label, end, properties=None):
         """Add edge with and  return its unique identifier
