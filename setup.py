@@ -16,7 +16,7 @@ setup(
     url='https://github.com/amirouche/ajgudb',
     description='Explore you connected data',
     long_description=read('README.rst'),
-    packages=find_packages(),
+    py_modules=['ajgudb'],
     zip_safe=False,
     license='GPLv2 or GPLv3',
     install_requires=[

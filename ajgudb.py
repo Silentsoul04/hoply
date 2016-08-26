@@ -6,8 +6,8 @@ from collections import namedtuple
 from collections import Counter
 
 from wiredtiger import wiredtiger_open
-from msgpack import loads
-from msgpack import dumps
+from json import loads
+from json import dumps
 
 
 VERTEX_KIND, EDGE_KIND = range(2)
@@ -144,6 +144,10 @@ class AjguDB(object):
         self._tuples.reset()
         return out
 
+    def delete(self, element):
+        assert element.uid
+        self._delete(element.uid)
+    
     def get(self, uid):
         self._tuples.set_key(uid, '')
         code = self._tuples.search_near()
@@ -159,24 +163,26 @@ class AjguDB(object):
         while True:
             other, key = self._tuples.get_key()
             if other == uid:
-                properties[key] = loads(self._tuples.get_value())
+                value = self._tuples.get_value()
+                properties[key] = loads(value)
                 if self._tuples.next() == WT_NOT_FOUND:
                     self._tuples.reset()
                     break
             else:
                 self._tuples.reset()
                 break
-        kind = out.pop('__kind__')
+
+        kind = properties.pop('__kind__')
         if kind == VERTEX_KIND:
             vertex = Vertex(**properties)
             vertex.uid = uid
             return vertex
         elif kind == EDGE_KIND:
             start = properties.pop('__start__')
-            start = self.fetch(start)
+            start = self.get(start)
             end = properties.pop('__end__')
-            end = self.fetch(end)            
-            edge = Edge(start, end, **properties)
+            end = self.get(end)            
+            edge = Edge(start, end, properties)
             edge.uid = uid
             return edge
     

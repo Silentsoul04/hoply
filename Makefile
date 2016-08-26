@@ -1,2 +1,2 @@
 check:
-	nose2 -C --coverage ajgudb --coverage-report html
+	py.test --cov=. --cov-report=html tests.py 
