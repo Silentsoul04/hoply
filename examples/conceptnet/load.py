@@ -1,6 +1,7 @@
 from msgpack import Unpacker
 
 from ajgudb import gremlin
+from ajgudb import AjguDB
 
 
 example = {
@@ -29,52 +30,26 @@ example = {
 }
 
 
-def get_or_create(graphdb, label, key, value):
-    try:
-        return gremlin.query(
-            gremlin.select_vertices(**dict(key=value)),
-            gremlin.limit(1),
-            gremlin.get
-        )(graphdb)[0]
-    except IndexError:
-        return graphdb.vertex.create(label, **dict(key=value))
-
-
 def load():
-    from ajgudb import AjguDB
-    print('build database at db')
-    db = AjguDB('./db/')
+    db = AjguDB('/tmp/ajgudb')
 
     # add index on name
-    db.vertex.index('name')
+    db.vertex.key_index('name')
 
-    for index in range(8):
-        name = 'data/assertions/part_0{}.msgpack'.format(index)
+    for index in range(1):
+        name = 'data/conceptnet/part_0{}.msgpack'.format(index)
         with open(name, 'rb') as stream:
             print(name)
             unpacker = Unpacker(stream, encoding='utf-8')
             for value in unpacker:
                 start = value.pop('start').encode('utf-8')
                 end = value.pop('end').encode('utf-8')
-                # only import english concepts
-                if not (start.startswith('/c/en/')
-                        and end.startswith('/c/en/')):
-                    continue
-                start = get_or_create(db, 'concept/item', 'name', start)
-                end = get_or_create(db, 'concept/item', 'name', end)
+                relation = value.pop('rel')
 
-                # do not include the following keys
-                value.pop(u'sources')
-                value.pop(u'features')
-                value.pop(u'source_uri')
-                value.pop(u'dataset')
-                value.pop(u'license')
-                value.pop(u'uri')
-                value.pop(u'id')
+                start = db.vertex.get_or_create('concept', name=start)
+                end = db.vertex.get_or_create('concept', name=end)
 
-                # convert unicode keys into byte/str keys
-                value = {key.encode('utf-8'): value[key] for key in value.keys()}  # noqa
-                start.link('concept/relation', end,  **value)
+                start.link(relation, end)
     db.close()
 
 
