@@ -1,6 +1,7 @@
 from msgpack import Unpacker
 
-from ajgudb import gremlin
+from ajgudb import Edge
+from ajgudb import Vertex
 from ajgudb import AjguDB
 
 
@@ -32,24 +33,25 @@ example = {
 
 def load():
     db = AjguDB('/tmp/ajgudb')
-
-    # add index on name
-    db.vertex.key_index('name')
-
+    relations = set()
     for index in range(1):
         name = 'data/conceptnet/part_0{}.msgpack'.format(index)
         with open(name, 'rb') as stream:
             print(name)
             unpacker = Unpacker(stream, encoding='utf-8')
             for value in unpacker:
-                start = value.pop('start').encode('utf-8')
-                end = value.pop('end').encode('utf-8')
-                relation = value.pop('rel')
-
-                start = db.vertex.get_or_create('concept', name=start)
-                end = db.vertex.get_or_create('concept', name=end)
-
-                start.link(relation, end)
+                start = value.pop('start')
+                end = value.pop('end')
+                if start.startswith('/c/en') and end.startswith('/c/en'):
+                    relation = value.pop('rel')
+                    relations.add(relation)
+                    start = Vertex(name=start)
+                    end = Vertex(name=end)
+                    relation = start.link(end, relation=relation)
+                    db.save(relation)
+                    print '.',
+    for relation in relations:
+        print relation
     db.close()
 
 

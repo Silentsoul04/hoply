@@ -1,169 +1,455 @@
-# AjuDB - wiredtiger powered graph database
-# Copyright (C) 2015 Amirouche Boubekki <amirouche@hypermove.net>
-from .storage import Storage
+# AjuDB - graphdb for exploring your connected data
+# Copyright (C) 2015-2016 Amirouche Boubekki <amirouche@hypermove.net>
+from itertools import imap
+
+from collections import namedtuple
+from collections import Counter
+
+from wiredtiger import wiredtiger_open
+from msgpack import loads
+from msgpack import dumps
 
 
-class Base(dict):
-
-    def __eq__(self, other):
-        if isinstance(other, type(self)):
-            return self.uid == other.uid
-        return False
-
-    def __ne__(self, other):
-        return not (self == other)
-
-    def __repr__(self):
-        return '<%s %s>' % (type(self).__name__, self.uid)
-
-    def __nonzero__(self):
-        return True
-
-    def __hash__(self):
-        return self.uid
+VERTEX_KIND, EDGE_KIND = range(2)
 
 
-class Vertex(Base):
+class AjguDBException(Exception):
+    pass
 
-    __slots__ = ('_graphdb', 'uid', 'label')
 
-    def __init__(self, graphdb, uid, label, properties):
-        self._graphdb = graphdb
-        self.uid = uid
-        self.label = label
+class Vertex(dict):
+
+    __slots__ = ('uid')
+
+    def __init__(self, **properties):
+        self.uid = None
         super(Vertex, self).__init__(properties)
 
-    def incomings(self):
-        edges = self._graphdb._storage.edges.incomings(self.uid)
-        # XXX: this method must be with care, since it fully consume
-        # the generator (to avoid cursor leak).
-        return map(self._graphdb.edge.get, edges)
-
-    def outgoings(self):
-        edges = self._graphdb._storage.edges.outgoings(self.uid)
-        # this method must be with care, since it fully consume
-        # the generator (to avoid cursor leak).
-        return map(self._graphdb.edge.get, edges)
-
-    def link(self, label, end, **properties):
-        uid = self._graphdb._storage.edges.add(
-            self.uid,
-            label,
-            end.uid,
-            properties
-        )
-        return Edge(self._graphdb, uid, self.uid, label, end.uid, properties)
-
-    def save(self):
-        self._graphdb._storage.vertices.update(self.uid, self)
-
-    def delete(self):
-        map(lambda x: x.delete(), self.incomings())
-        map(lambda x: x.delete(), self.outgoings())
-        self._graphdb._storage.vertices.delete(self.uid)
+    def link(self, end, **properties):
+        return Edge(self, end, properties)
 
 
-class Edge(Base):
+class Edge(dict):
 
-    __slots__ = ('_graphdb', 'uid', '_start', 'label', '_end')
+    __slots__ = ('uid', 'start', 'end')
 
-    def __init__(self, graphdb, uid, start, label, end, properties):
-        self._graphdb = graphdb
-        self.uid = uid
-        self._start = start
-        self._end = end
+    def __init__(self, start, end, properties):
+        self.uid = None
+        self.start = start
+        self.end = end
         super(Edge, self).__init__(properties)
 
-    def start(self):
-        return self._graphdb.vertex.get(self._start)
 
-    def end(self):
-        return self._graphdb.vertex.get(self._end)
-
-    def save(self):
-        self._graphdb._storage.edges.update(self.uid, self)
-
-    def delete(self):
-        self._graphdb._storage.edges.delete(self.uid)
-
-
-class VertexManager(object):
-
-    def __init__(self, graphdb):
-        self._graphdb = graphdb
-
-    def key_index(self, name):
-        self._graphdb._storage.vertices._indices.append(name)
-
-    def create(self, label, **properties):
-        uid = self._graphdb._storage.vertices.add(label, properties)
-        return Vertex(self._graphdb, uid, label, properties)
-
-    def get(self, uid):
-        label, properties = self._graphdb._storage.vertices.get(uid)
-        return Vertex(self._graphdb, uid, label, properties)
-
-    def one(self, label, **properties):
-        import gremlin
-        query = gremlin.query(
-            gremlin.vertices(label),
-            gremlin.where(**properties),
-            gremlin.limit(1),
-            gremlin.get
-        )
-        try:
-            element = query(self._graphdb)[0]
-        except IndexError:
-            return None
-        else:
-            return element
-
-    def get_or_create(self, label, **properties):
-        element = self.one(label, **properties)
-        if element:
-            return element
-        else:
-            return self._graphdb.vertex.create(label, **properties)
-
-
-class EdgeManager(object):
-
-    def __init__(self, graphdb):
-        self._graphdb = graphdb
-
-    def key_index(self, name):
-        self._graphdb._storage.edges._indices.append(name)
-
-    def get(self, uid):
-        start, label, end, properties = self._graphdb._storage.edges.get(uid)
-        return Edge(self._graphdb, uid, start, label, end, properties)
-
-    def one(self, label, **properties):
-        import gremlin
-        query = gremlin.query(
-            gremlin.edges(label),
-            gremlin.where(**properties),
-            gremlin.limit(1),
-            gremlin.get
-        )
-        try:
-            element = query(self._graphdb)[0]
-        except IndexError:
-            return None
-        else:
-            return element
+WT_NOT_FOUND = -31803
 
 
 class AjguDB(object):
 
     def __init__(self, path):
-        self._storage = Storage(path)
-        self.vertex = VertexManager(self)
-        self.edge = EdgeManager(self)
+        # init wiredtiger
+        self._wiredtiger = wiredtiger_open(path, 'create')
+        session = self._wiredtiger.open_session()
 
-        self.get = self._storage.collection.get
-        self.set = self._storage.collection.set
-        self.remove = self._storage.collection.remove
+        # sequence table of uids
+        session.create('table:uids', 'key_format=r,value_format=u')
+        self._uids = session.open_cursor('table:uids', None, 'append')
 
+        # tuples
+        session.create('table:tuples', 'key_format=QS,value_format=S,columns=(uid,key,value)')
+        self._tuples = session.open_cursor('table:tuples')
+
+        # reversed index for (key, value) querying
+        session.create('index:tuples:index', 'columns=(key,value)')
+        self._reversed = session.open_cursor('index:tuples:index(uid)')
+
+    def _next_uid(self):
+        self._uids.set_value(b'')
+        self._uids.insert()
+        uid = self._uids.get_key()
+        return uid
+
+    def _uids(self):
+        self._uids.reset()
+        def iterator():
+            while self._uids.next() != WT_NOT_FOUND:
+                yield self._uids.get_key()
+        out = list(iterator())
+        self._uids.reset()
+        return out
+    
+    def _delete(self, uid):
+        # remove uid from uids table
+        self._uids.set_key(uid)
+        self._uids.search()
+        self._uids.remove()
+        self._uids.reset()
+
+        # remove properties from tuples table
+        self._tuples.set_key(uid, '')
+        code = self._tuples.search_near()
+
+        if code == WT_NOT_FOUND:
+            self._tuples.reset()
+            return
+        elif code == -1:
+            if self._tuples.next() == WT_NOT_FOUND:
+                return
+
+        while True:
+            other_uid, other_key = self._tuples.get_key()
+            if other_uid == uid:
+                self._tuples.remove()
+                if self._tuples.next() == WT_NOT_FOUND:
+                    self._tuples.reset()
+                    break
+            else:
+                self._tuples.reset()
+                break
+
+    def _update(self, uid, properties):
+        self._delete(uid)
+        for key, value in properties.items():
+            self._tuples.set_key(uid, key)
+            self._tuples.set_value(dumps(value))
+            self._tuples.insert()
+
+    def _index(self, key, value):
+        self._reversed.set_key(key, dumps(value))
+
+        code = self._reversed.search()
+        if code == WT_NOT_FOUND:
+            self._tuples.reset()
+            return list()
+
+        def iterator():
+            while True:
+                other_key, other_value = self._tuples.get_key()
+                if key == other_key and value == other_value:
+                    yield self.get_value()
+                    if self._reversed.next() == WT_NOT_FOUND:
+                        self._reversed.reset()
+                        break
+                else:
+                    self._reversed.reset()
+                    break
+
+        return list(iterator())
+
+    def _key(self, uid, key):
+        self._tuples.set_key(uid, key)
+        if self._tuples.search() == 0:
+            out = loads(self._tuples.get_value())
+        else:
+            out = None  # do not raise an exception or it will be painful
+        self._tuples.reset()
+        return out
+
+    def get(self, uid):
+        self._tuples.set_key(uid, '')
+        code = self._tuples.search_near()
+
+        if code == WT_NOT_FOUND:
+            self._tuples.reset()
+            return None
+        elif code == -1:
+            if self._tuples.next() == WT_NOT_FOUND:
+                return None
+
+        properties = dict()
+        while True:
+            other, key = self._tuples.get_key()
+            if other == uid:
+                properties[key] = loads(self._tuples.get_value())
+                if self._tuples.next() == WT_NOT_FOUND:
+                    self._tuples.reset()
+                    break
+            else:
+                self._tuples.reset()
+                break
+        kind = out.pop('__kind__')
+        if kind == VERTEX_KIND:
+            vertex = Vertex(**properties)
+            vertex.uid = uid
+            return vertex
+        elif kind == EDGE_KIND:
+            start = properties.pop('__start__')
+            start = self.fetch(start)
+            end = properties.pop('__end__')
+            end = self.fetch(end)            
+            edge = Edge(start, end, **properties)
+            edge.uid = uid
+            return edge
+    
     def close(self):
-        self._storage.close()
+        self._wiredtiger.close()
+
+    def save(self, element):
+        if isinstance(element, Vertex):
+            if element.uid is not None:
+                uid = element.uid
+            else:
+                uid = element.uid = self._next_uid()
+            properties = dict(element)  # make a copy
+            properties['__kind__'] = VERTEX_KIND
+            self._update(uid, properties)
+            return element
+        elif isinstance(element, Edge):
+            if element.uid is not None:
+                uid = element.uid
+            else:
+                uid = element.uid = self._next_uid()
+            properties = dict(element)
+            properties['__kind__'] = EDGE_KIND
+            properties['__start__'] = element.start.uid if (element.start.uid is not None) else self.save(element.start).uid
+            properties['__end__'] = element.end.uid if (element.end.uid is not None) else self.save(element.end).uid
+            self._update(uid, properties)
+            return element
+        else:
+            msg = '%s is not supported' % type(element).__name__
+            raise AjguDBException(msg)
+
+
+GremlinResult = namedtuple('GremlinResult', ('value', 'parent'))
+
+
+def query(*steps):
+    """Gremlin pipeline builder and executor"""
+
+    def composed(ajgudb, iterator=None):
+        if isinstance(iterator, Vertex) or isinstance(iterator, Edge):
+            iterator = [GremlinResult(iterator.uid, None)]
+        elif isinstance(iterator, GremlinResult):
+            iterator = [iterator]
+        # else it might be a GremlinResult iterator (or something else)
+        #      but we don't care, if it must crash, it will crash!
+        for step in steps:
+            iterator = step(ajgudb, iterator)
+        return iterator
+
+    return composed
+
+def VERTICES():
+    """Seed step. Iterator over all vertices"""
+    def step(ajgudb, _):
+        for uid in ajgudb._index('__kind__', VERTEX_KIND):
+            yield GremlinResult(uid, None)
+    return step
+
+def EDGES():
+    """Seed step. Iterator over all vertices"""
+    def step(ajgudb, _):
+        for uid in ajgudb._index('__kind__', EDGE_KIND):
+            yield GremlinResult(uid, None, Edge)
+    return step
+
+def FROM(klass, **kwargs):
+    """Seed step. Iterator over element of class ``klass`` that match
+    ``kwargs`` where ``kwargs`` is a single `key=value` pair"""
+    if len(kwargs.items()) > 1:
+        raise Exception('Only one key/value pair is supported')
+
+    key, value = kwargs.items()[0]
+    
+    def step(ajgudb, _):
+        for uid in storage._index(key, value):
+            yield GremlinResult(uid, None)
+
+    return step
+
+def where(**kwargs):
+    """Keep elements that match the ``kwargs`` specification.
+
+    This step accepts uids as input."""
+
+    def step(ajgudb, iterator):
+        for item in iterator:
+            for key, value in kwargs.items():
+                other = ajgudb._key(item.value, key)
+                # if the input ``value`` is different from ``other``
+                # which is the value associated with (item.value, key)
+                # then this item.value is not a match
+                if value == loads(other):
+                    break
+            else:
+                # this a match!
+                yield item
+
+    return step
+
+def skip(count):
+    """Skip first ``count`` items"""
+    def step(ajgudb, iterator):
+        counter = 0
+        for item in iterator:
+            counter += 1
+            if counter > count:
+                yield item
+    return step
+
+def limit(count):
+    """Keep only first ``count`` items"""
+    def step(ajgudb, iterator):
+        counter = 0
+        for item in iterator:
+            counter += 1
+            yield item
+            if counter == count:
+                break
+    return step
+
+def paginator(count):
+    """paginate..."""
+    def step(ajgudb, iterator):
+        counter = 0
+        page = list()
+        for item in iterator:
+            page.append(item)
+            counter += 1
+            if counter == count:
+                yield page
+                counter = 0
+                page = list()
+        yield page
+    return step
+
+def count(ajgudb, iterator):
+    """Count the number of items in the iterator"""
+    return reduce(lambda x, y: x + 1, iterator, 0)
+
+def key(key):
+    """Get the value associated with ``key``.
+
+    This accepts uids as input."""
+
+    def step(ajgudb, iterator):
+        for item in iterator:
+            out = ajgudb._key(item.value, key)
+            yield GremlinResult(out, item)
+
+# edges navigation
+
+def incomings(ajgudb, iterator):
+    """Return the list of incomings edges.
+
+    Accepts vertex uids as input"""
+    
+    def step(ajgudb, iterator):
+        for item in iterator:
+            out = ajgudb._index('__end__', item.value)
+            yield GremlinResult(out, item)
+
+    return step
+
+
+def outgoings(ajgudb, iterator):
+    """Return the list of incomings edges.
+
+    Accepts vertex uids as input"""
+    
+    def step(ajgudb, iterator):
+        for item in iterator:
+            out = ajgudb._index('__start__', item.value)
+            yield GremlinResult(out, item)
+
+    return step
+
+def start(ajgudb, iterator):
+    """Return the start vertex of edges
+
+    Accepts edge uids as input"""
+    for item in iterator:
+        out = ajgudb._key(item.value, '__start__')
+        yield GremlinResult(out, item)
+
+def end(ajgudb, iterator):
+    """Return the end vertex of edges
+
+    Accepts edge uids as input"""
+    for item in iterator:
+        out = ajgudb._key(item.value, '__end__')
+        yield GremlinResult(out, item)
+
+def gmap(func):
+    def step(ajgudb, iterator):
+        return imap(lambda x: GremlinResult(func(ajgudb, x), x), iterator)
+    return step
+
+def value(ajgudb, iterator):
+    return imap(lambda x: x.value, iterator)
+
+def get(ajgudb, iterator):
+    def iterator():
+        for item in iterator:
+            yield ajgudb.get(item.value)
+    return list(iterator())
+
+def sort(key=lambda g, x: x, reverse=False):
+    def step(ajgudb, iterator):
+        out = sorted(iterator, key=lambda x: key(ajgudb, x), reverse=reverse)
+        return iter(out)
+    return step
+
+def unique(ajgudb, iterator):
+    # from ActiveState (MIT)
+    #
+    #   Lazy Ordered Unique elements from an iterator
+    #
+    def __unique(iterable, key=None):
+        seen = set()
+
+        if key is None:
+            # Optimize the common case
+            for item in iterable:
+                if item in seen:
+                    continue
+                seen.add(item)
+                yield item
+
+        else:
+            for item in iterable:
+                keyitem = key(item)
+                if keyitem in seen:
+                    continue
+                seen.add(keyitem)
+                yield item
+
+    iterator = __unique(iterator, lambda x: x.value)
+    return iterator
+
+def filter(predicate):
+    def step(ajgudb, iterator):
+        for item in iterator:
+            if predicate(ajgudb, item):
+                yield item
+    return step
+
+def back(ajgudb, iterator):
+    return imap(lambda x: x.parent, iterator)
+
+def path(steps):
+
+    def path_(previous, _):
+        previous.append(previous[-1].parent)
+        return previous
+
+    def step(ajgudb, iterator):
+        for item in iterator:
+            yield reduce(path_, range(steps), [item])
+
+    return step
+
+def mean(ajgudb, iterator):
+    count = 0.
+    total = 0.
+    for item in iterator:
+        total += item
+        count += 1
+    return total / count
+
+def group_count(ajgudb, iterator):
+    yield Counter(map(lambda x: x.value, iterator))
+
+def scatter(ajgudb, iterator):
+    for item in iterator:
+        for other in item.value:
+            yield GremlinResult(other, item, None)
