@@ -10,6 +10,11 @@ from json import loads
 from json import dumps
 
 
+def pk(*args):
+    print args
+    return args[-1]
+
+
 VERTEX_KIND, EDGE_KIND = range(2)
 
 
@@ -74,7 +79,7 @@ class AjguDB(object):
             uid, key = self._tuples.get_key()
             value = loads(self._tuples.get_value())
             print uid, key, value
-        
+
     def _next_uid(self):
         self._uids.set_value(b'')
         self._uids.insert()
@@ -152,7 +157,7 @@ class AjguDB(object):
     def delete(self, element):
         assert element.uid
         self._delete(element.uid)
-    
+
     def get(self, uid):
         self._tuples.set_key(uid, '')
         code = self._tuples.search_near()
@@ -186,11 +191,11 @@ class AjguDB(object):
             start = properties.pop('__start__')
             start = self.get(start)
             end = properties.pop('__end__')
-            end = self.get(end)            
+            end = self.get(end)
             edge = Edge(start, end, properties)
             edge.uid = uid
             return edge
-    
+
     def close(self):
         self._wiredtiger.close()
 
@@ -218,6 +223,19 @@ class AjguDB(object):
         else:
             msg = '%s is not supported' % type(element).__name__
             raise AjguDBException(msg)
+
+    def get_or_create(self, element):
+        if isinstance(element, Vertex):
+            items = element.items()
+            seed = {items[0][0]: items[0][1]}
+            others = dict(items[1:])
+            query = gremlin(FROM(**seed), where(**others), get)
+            try:
+                return False, query(self)[0]
+            except IndexError:
+                return True, self.save(element)
+        else:
+            raise NotImplementedError('FIXME')
 
 
 GremlinResult = namedtuple('GremlinResult', ('value', 'parent'))
@@ -256,7 +274,7 @@ def FROM(**kwargs):
         raise Exception('Only one key/value pair is supported')
 
     key, value = kwargs.items()[0]
-    
+
     def step(ajgudb, _):
         for uid in ajgudb._index(key, value):
             yield GremlinResult(uid, None)
@@ -340,7 +358,7 @@ def key(key):
 def incomings(ajgudb, iterator):
     """Return the list of incomings edges.
 
-    Accepts vertex uids as input"""  
+    Accepts vertex uids as input"""
     for item in iterator:
         out = ajgudb._index('__end__', item.value)
         yield GremlinResult(out, item)
@@ -350,7 +368,7 @@ def incomings(ajgudb, iterator):
 def outgoings(ajgudb, iterator):
     """Return the list of incomings edges.
 
-    Accepts vertex uids as input"""   
+    Accepts vertex uids as input"""
     for item in iterator:
         out = ajgudb._index('__start__', item.value)
         yield GremlinResult(out, item)

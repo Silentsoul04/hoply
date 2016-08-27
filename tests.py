@@ -275,3 +275,14 @@ class DatabaseTestCase(TestCase):
         query = gremlin(key('weight'), gmap(lambda g, x: x + 1), path(3))
         out = list(query(self.graph, vertex))
         self.assertEqual(out, [[43, 42, 1]])
+
+    def test_get_or_create(self):
+        new, vertex = self.graph.get_or_create(Vertex(key='value'))
+        self.assertTrue(new)
+        self.assertIsNotNone(vertex.uid)
+
+    def test_get_or_create_2(self):
+        vertex = self.graph.save(Vertex(key='value'))
+        new, other = self.graph.get_or_create(Vertex(key='value'))
+        self.assertFalse(new)
+        self.assertEqual(vertex.uid, other.uid)

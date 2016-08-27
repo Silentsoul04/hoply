@@ -4,6 +4,8 @@ from ajgudb import Edge
 from ajgudb import Vertex
 from ajgudb import AjguDB
 
+from helpers import concept_to_trigrams
+
 
 example = {
     u'id': u'/e/ff75ac33f095b9b2ee53ea6630e1a80be7e0a1b0',
@@ -30,9 +32,15 @@ example = {
     ]
 }
 
+def trigrams_index(graph, vertex):
+    name = vertex['name']
+    for trigram in concept_to_trigrams(name):
+        trigram = graph.save(Vertex(trigram=trigram))
+        trigram.link(vertex)
 
+    
 def load():
-    db = AjguDB('/tmp/ajgudb')
+    graph = AjguDB('/tmp/ajgudb')
     relations = set()
     for index in range(1):
         name = 'data/conceptnet/part_0{}.msgpack'.format(index)
@@ -45,14 +53,17 @@ def load():
                 if start.startswith('/c/en') and end.startswith('/c/en'):
                     relation = value.pop('rel')
                     relations.add(relation)
-                    start = Vertex(name=start)
-                    end = Vertex(name=end)
+                    new, start = graph.get_or_create(Vertex(name=start))
+                    if new:
+                        trigrams_index(graph, start)
+                    new, end = graph.get_or_create(Vertex(name=end))
+                    if new:
+                        trigrams_index(graph, end)
                     relation = start.link(end, relation=relation)
-                    db.save(relation)
-                    print '.',
+                    graph.save(relation)
     for relation in relations:
         print relation
-    db.close()
+    graph.close()
 
 
 if __name__ == '__main__':
