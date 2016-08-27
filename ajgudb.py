@@ -468,9 +468,9 @@ def mean(ajgudb, iterator):
     return total / count
 
 def group_count(ajgudb, iterator):
-    yield Counter(map(lambda x: x.value, iterator))
+    return Counter(map(lambda x: x.value, iterator))
 
 def scatter(ajgudb, iterator):
     for item in iterator:
         for other in item.value:
-            yield GremlinResult(other, item, None)
+            yield GremlinResult(other, item)
