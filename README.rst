@@ -15,16 +15,17 @@ AjguDB wants to be a fast enough python graph database for exploring connected d
 Dependencies
 ============
 
-- [wiredtiger 2.6.1](http://source.wiredtiger.com/releases/wiredtiger-2.6.1.tar.bz2)
+- [wiredtiger develop branch](https://github.com/wiredtiger/wiredtiger)
 
 ChangeLog
 =========
 
-master
-------
+0.8
+---
 
-- more tests, coverage is 80%
-- make it work with wiredtiger develop branch
+- move to tuple space implementation
+- work with wiredtiger develop branch
+- 88% test coverage
 
 0.7.1
 -----
