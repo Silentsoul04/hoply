@@ -28,6 +28,9 @@ class Vertex(dict):
     def link(self, end, **properties):
         return Edge(self, end, properties)
 
+    def __repr__(self):
+        return '<Vertex uid:%s %s>' % (self.uid, super(Vertex, self).__repr__())
+
 
 class Edge(dict):
 
@@ -38,6 +41,9 @@ class Edge(dict):
         self.start = start
         self.end = end
         super(Edge, self).__init__(properties)
+
+    def __repr__(self):
+        return '<Edge uid:%s %s>' % (self.uid, super(Edge, self).__repr__())
 
 
 WT_NOT_FOUND = -31803
@@ -62,21 +68,19 @@ class AjguDB(object):
         session.create('index:tuples:index', 'columns=(key,value)')
         self._reversed = session.open_cursor('index:tuples:index(uid)')
 
+    def debug(self):
+        self._tuples.reset()
+        while self._tuples.next() != WT_NOT_FOUND:
+            uid, key = self._tuples.get_key()
+            value = loads(self._tuples.get_value())
+            print uid, key, value
+        
     def _next_uid(self):
         self._uids.set_value(b'')
         self._uids.insert()
         uid = self._uids.get_key()
         return uid
 
-    def _uids(self):
-        self._uids.reset()
-        def iterator():
-            while self._uids.next() != WT_NOT_FOUND:
-                yield self._uids.get_key()
-        out = list(iterator())
-        self._uids.reset()
-        return out
-    
     def _delete(self, uid):
         # remove uid from uids table
         self._uids.set_key(uid)
@@ -114,18 +118,19 @@ class AjguDB(object):
             self._tuples.insert()
 
     def _index(self, key, value):
-        self._reversed.set_key(key, dumps(value))
+        value = dumps(value)
+        self._reversed.set_key(key, value)
 
         code = self._reversed.search()
         if code == WT_NOT_FOUND:
-            self._tuples.reset()
+            self._reversed.reset()
             return list()
 
         def iterator():
             while True:
-                other_key, other_value = self._tuples.get_key()
+                other_key, other_value = self._reversed.get_key()
                 if key == other_key and value == other_value:
-                    yield self.get_value()
+                    yield self._reversed.get_value()
                     if self._reversed.next() == WT_NOT_FOUND:
                         self._reversed.reset()
                         break
@@ -218,7 +223,7 @@ class AjguDB(object):
 GremlinResult = namedtuple('GremlinResult', ('value', 'parent'))
 
 
-def query(*steps):
+def gremlin(*steps):
     """Gremlin pipeline builder and executor"""
 
     def composed(ajgudb, iterator=None):
@@ -234,21 +239,17 @@ def query(*steps):
 
     return composed
 
-def VERTICES():
+def VERTICES(ajgudb, _):
     """Seed step. Iterator over all vertices"""
-    def step(ajgudb, _):
-        for uid in ajgudb._index('__kind__', VERTEX_KIND):
-            yield GremlinResult(uid, None)
-    return step
+    for uid in ajgudb._index('__kind__', VERTEX_KIND):
+        yield GremlinResult(uid, None)
 
-def EDGES():
+def EDGES(ajgudb, _):
     """Seed step. Iterator over all vertices"""
-    def step(ajgudb, _):
-        for uid in ajgudb._index('__kind__', EDGE_KIND):
-            yield GremlinResult(uid, None, Edge)
-    return step
+    for uid in ajgudb._index('__kind__', EDGE_KIND):
+        yield GremlinResult(uid, None)
 
-def FROM(klass, **kwargs):
+def FROM(**kwargs):
     """Seed step. Iterator over element of class ``klass`` that match
     ``kwargs`` where ``kwargs`` is a single `key=value` pair"""
     if len(kwargs.items()) > 1:
@@ -257,7 +258,7 @@ def FROM(klass, **kwargs):
     key, value = kwargs.items()[0]
     
     def step(ajgudb, _):
-        for uid in storage._index(key, value):
+        for uid in ajgudb._index(key, value):
             yield GremlinResult(uid, None)
 
     return step
@@ -274,7 +275,7 @@ def where(**kwargs):
                 # if the input ``value`` is different from ``other``
                 # which is the value associated with (item.value, key)
                 # then this item.value is not a match
-                if value == loads(other):
+                if value != other:
                     break
             else:
                 # this a match!
@@ -332,32 +333,28 @@ def key(key):
             out = ajgudb._key(item.value, key)
             yield GremlinResult(out, item)
 
+    return step
+
 # edges navigation
 
 def incomings(ajgudb, iterator):
     """Return the list of incomings edges.
 
-    Accepts vertex uids as input"""
-    
-    def step(ajgudb, iterator):
-        for item in iterator:
-            out = ajgudb._index('__end__', item.value)
-            yield GremlinResult(out, item)
+    Accepts vertex uids as input"""  
+    for item in iterator:
+        out = ajgudb._index('__end__', item.value)
+        yield GremlinResult(out, item)
 
-    return step
 
 
 def outgoings(ajgudb, iterator):
     """Return the list of incomings edges.
 
-    Accepts vertex uids as input"""
-    
-    def step(ajgudb, iterator):
-        for item in iterator:
-            out = ajgudb._index('__start__', item.value)
-            yield GremlinResult(out, item)
+    Accepts vertex uids as input"""   
+    for item in iterator:
+        out = ajgudb._index('__start__', item.value)
+        yield GremlinResult(out, item)
 
-    return step
 
 def start(ajgudb, iterator):
     """Return the start vertex of edges
@@ -377,17 +374,17 @@ def end(ajgudb, iterator):
 
 def gmap(func):
     def step(ajgudb, iterator):
-        return imap(lambda x: GremlinResult(func(ajgudb, x), x), iterator)
+        return imap(lambda x: GremlinResult(func(ajgudb, x.value), x), iterator)
     return step
 
 def value(ajgudb, iterator):
     return imap(lambda x: x.value, iterator)
 
 def get(ajgudb, iterator):
-    def iterator():
+    def iterator_():
         for item in iterator:
             yield ajgudb.get(item.value)
-    return list(iterator())
+    return list(iterator_())
 
 def sort(key=lambda g, x: x, reverse=False):
     def step(ajgudb, iterator):
@@ -422,10 +419,10 @@ def unique(ajgudb, iterator):
     iterator = __unique(iterator, lambda x: x.value)
     return iterator
 
-def filter(predicate):
+def filtered(predicate):
     def step(ajgudb, iterator):
         for item in iterator:
-            if predicate(ajgudb, item):
+            if predicate(ajgudb, item.value):
                 yield item
     return step
 
@@ -440,7 +437,7 @@ def path(steps):
 
     def step(ajgudb, iterator):
         for item in iterator:
-            yield reduce(path_, range(steps), [item])
+            yield map(lambda x: x.value, reduce(path_, range(steps - 1), [item]))
 
     return step
 
