@@ -243,12 +243,12 @@ class DatabaseTestCase(TestCase):
         out = list(query(self.graph))
         self.assertEqual(out, [4.0, 1.0])
 
-    def test_gremlin_filtered(self):
+    def test_gremlin_gfilter(self):
         a = self.graph.save(Vertex(weight=3.0))
         b = self.graph.save(Vertex(weight=2.0))
         c = self.graph.save(Vertex(weight=4.0))
         d = self.graph.save(Vertex(weight=1.0))
-        query = gremlin(VERTICES, key('weight'), filtered(lambda g, x: x > 2), value)
+        query = gremlin(VERTICES, key('weight'), gfilter(lambda g, x: x > 2), value)
         out = list(query(self.graph))
         self.assertEqual(out, [3.0, 4.0])
 
@@ -257,7 +257,7 @@ class DatabaseTestCase(TestCase):
         b = self.graph.save(Vertex(weight=2.0))
         c = self.graph.save(Vertex(weight=4.0))
         d = self.graph.save(Vertex(weight=1.0))
-        query = gremlin(VERTICES, key('weight'), filtered(lambda g, x: x > 2), back, value)
+        query = gremlin(VERTICES, key('weight'), gfilter(lambda g, x: x > 2), back, value)
         out = list(query(self.graph))
         self.assertEqual(out, [a.uid, c.uid])
 

@@ -341,14 +341,14 @@ def count(ajgudb, iterator):
     """Count the number of items in the iterator"""
     return reduce(lambda x, y: x + 1, iterator, 0)
 
-def key(key):
+def key(name):
     """Get the value associated with ``key``.
 
     This accepts uids as input."""
 
     def step(ajgudb, iterator):
         for item in iterator:
-            out = ajgudb._key(item.value, key)
+            out = ajgudb._key(item.value, name)
             yield GremlinResult(out, item)
 
     return step
@@ -396,9 +396,12 @@ def gmap(func):
     return step
 
 def value(ajgudb, iterator):
-    return imap(lambda x: x.value, iterator)
+    "Retrieve the content of the iterator"
+    return map(lambda x: x.value, iterator)
 
 def get(ajgudb, iterator):
+    "equivalent to ``imap(ajgudb.get, query(ajgudb, gremlin(...))``"
+
     def iterator_():
         for item in iterator:
             yield ajgudb.get(item.value)
@@ -437,7 +440,7 @@ def unique(ajgudb, iterator):
     iterator = __unique(iterator, lambda x: x.value)
     return iterator
 
-def filtered(predicate):
+def gfilter(predicate):
     def step(ajgudb, iterator):
         for item in iterator:
             if predicate(ajgudb, item.value):
@@ -447,7 +450,7 @@ def filtered(predicate):
 def back(ajgudb, iterator):
     return imap(lambda x: x.parent, iterator)
 
-def path(steps):
+def path(count):
 
     def path_(previous, _):
         previous.append(previous[-1].parent)
@@ -455,7 +458,7 @@ def path(steps):
 
     def step(ajgudb, iterator):
         for item in iterator:
-            yield map(lambda x: x.value, reduce(path_, range(steps - 1), [item]))
+            yield map(lambda x: x.value, reduce(path_, range(count - 1), [item]))
 
     return step
 
