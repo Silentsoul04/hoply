@@ -286,3 +286,15 @@ class DatabaseTestCase(TestCase):
         new, other = self.graph.get_or_create(Vertex(key='value'))
         self.assertFalse(new)
         self.assertEqual(vertex.uid, other.uid)
+
+    def test_gremlin_scatter(self):
+        a = self.graph.save(Vertex())
+        b = self.graph.save(Vertex())
+        c = self.graph.save(Vertex())
+        d = self.graph.save(Vertex())
+        self.graph.save(a.link(b))
+        self.graph.save(a.link(c))
+        self.graph.save(a.link(d))
+        query = gremlin(outgoings, scatter, end, value)
+        out = list(query(self.graph, a))
+        self.assertEqual(out, [2, 3, 4])
