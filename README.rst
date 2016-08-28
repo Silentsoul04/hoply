@@ -5,9 +5,11 @@
 **This program is alpha becarful**
 
 - graphdb
+- pythonic
 - schemaless
-- single thread
-- transaction-less
+- networkless
+- with gremlin querying
+
 - GPLv2 or GPLv3
 
 AjguDB wants to be a fast enough python graph database for exploring connected data.
@@ -25,7 +27,7 @@ ChangeLog
 
 - move to tuple space implementation
 - work with wiredtiger develop branch
-- 88% test coverage
+- 89% test coverage
 
 0.7.1
 -----
