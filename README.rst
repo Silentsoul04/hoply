@@ -2,7 +2,7 @@
  AjguDB
 ========
 
-**This program is alpha becarful**
+AjguDB wants to be a fast enough python graph database for exploring connected data.
 
 - graphdb
 - pythonic
@@ -12,22 +12,34 @@
 
 - GPLv2 or GPLv3
 
-AjguDB wants to be a fast enough python graph database for exploring connected data.
 
 Dependencies
 ============
 
 - `wiredtiger develop branch <https://github.com/wiredtiger/wiredtiger>`_
 
+
+Documentation
+=============
+
+Check out the presentation @ [speakerdeck](https://speakerdeck.com/_amirouche_/ajgudb)
+  
 ChangeLog
 =========
 
+0.8.1
+=====
+
+- improve documentation
+- fix `scatter` step
+- improve test coverage (89%)
+- more experience with conceptnet
+  
 0.8
 ---
 
 - move to tuple space implementation
 - work with wiredtiger develop branch
-- 89% test coverage
 
 0.7.1
 -----

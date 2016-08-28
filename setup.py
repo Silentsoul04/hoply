@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name='AjguDB',
-    version='0.8',
+    version='0.8.1',
     author='Amirouche Boubekki',
     author_email='amirouche@hypermove.net',
     url='https://github.com/amirouche/ajgudb',
