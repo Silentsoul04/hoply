@@ -231,8 +231,8 @@ class AjguDB(object):
             others = dict(items[1:])
             query = gremlin(FROM(**seed), where(**others), get)
             try:
-                return False, query(self)[0]
-            except IndexError:
+                return False, next(iter(query(self)))
+            except StopIteration:
                 return True, self.save(element)
         else:
             raise NotImplementedError('FIXME')
@@ -400,12 +400,7 @@ def value(ajgudb, iterator):
     return map(lambda x: x.value, iterator)
 
 def get(ajgudb, iterator):
-    "equivalent to ``imap(ajgudb.get, query(ajgudb, gremlin(...))``"
-
-    def iterator_():
-        for item in iterator:
-            yield ajgudb.get(item.value)
-    return list(iterator_())
+    return imap(lambda x: ajgudb.get(x.value), iterator)
 
 def sort(key=lambda g, x: x, reverse=False):
     def step(ajgudb, iterator):

@@ -35,12 +35,12 @@ example = {
 def trigrams_index(graph, vertex):
     concept = vertex['concept']
     for trigram in words_to_trigrams(sanitize(concept)):
-        _, trigram = graph.get_or_create(Vertex(trigram=trigram))
+        _, trigram = graph.get_or_create(Vertex(label='trigram', trigram=trigram))
         graph.save(trigram.link(vertex))
 
 
 def load():
-    graph = AjguDB('/tmp/ajgudb3')
+    graph = AjguDB('db')
     relations = set()
     for index in range(8):
         name = 'data/conceptnet/part_0{}.msgpack'.format(index)
@@ -53,13 +53,13 @@ def load():
                 if start.startswith('/c/en') and end.startswith('/c/en'):
                     relation = value.pop('rel')
                     relations.add(relation)
-                    new, start = graph.get_or_create(Vertex(concept=start))
+                    new, start = graph.get_or_create(Vertex(label='concept', concept=start))
                     if new:
                         trigrams_index(graph, start)
-                    new, end = graph.get_or_create(Vertex(concept=end))
+                    new, end = graph.get_or_create(Vertex(label='concept', concept=end))
                     if new:
                         trigrams_index(graph, end)
-                    relation = start.link(end, relation=relation)
+                    relation = start.link(end, label='relation', relation=relation)
                     graph.save(relation)
     for relation in relations:
         print relation

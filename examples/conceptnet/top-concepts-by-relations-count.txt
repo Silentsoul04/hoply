@@ -1,0 +1,825 @@
+* /c/en/person 1173101
+** /c/en/person --> /r/NotDesires 3519
+** /c/en/person --> /r/Desires 3102
+** /c/en/person --> /r/CapableOf 2861
+** /c/en/person --> /r/HasProperty 263
+** /c/en/person --> /r/HasA 236
+** /c/en/person <-- /r/InstanceOf 1159708
+** /c/en/person <-- /r/RelatedTo 1650
+** /c/en/person <-- /r/IsA 445
+** /c/en/person <-- /r/EtymologicallyDerivedFrom 63
+** /c/en/person <-- /r/AtLocation 35
+* /c/en/place 732059
+** /c/en/place --> /r/RelatedTo 147
+** /c/en/place --> /r/UsedFor 15
+** /c/en/place --> /r/Antonym 11
+** /c/en/place --> /r/AtLocation 11
+** /c/en/place --> /r/EtymologicallyDerivedFrom 5
+** /c/en/place <-- /r/InstanceOf 730802
+** /c/en/place <-- /r/RelatedTo 692
+** /c/en/place <-- /r/IsA 303
+** /c/en/place <-- /r/EtymologicallyDerivedFrom 32
+** /c/en/place <-- /r/AtLocation 10
+* /c/en/populate_place 477825
+** /c/en/populate_place --> /r/Synonym 1
+** /c/en/populate_place <-- /r/InstanceOf 477824
+* /c/en/settlement 449294
+** /c/en/settlement --> /r/RelatedTo 36
+** /c/en/settlement --> /r/EtymologicallyDerivedFrom 2
+** /c/en/settlement --> /r/Synonym 1
+** /c/en/settlement --> /r/CausesDesire 1
+** /c/en/settlement <-- /r/InstanceOf 449183
+** /c/en/settlement <-- /r/RelatedTo 61
+** /c/en/settlement <-- /r/Synonym 5
+** /c/en/settlement <-- /r/EtymologicallyDerivedFrom 2
+** /c/en/settlement <-- /r/HasSubevent 1
+* /c/en/athlete 297476
+** /c/en/athlete --> /r/CapableOf 36
+** /c/en/athlete --> /r/RelatedTo 25
+** /c/en/athlete --> /r/AtLocation 6
+** /c/en/athlete --> /r/DesireOf 5
+** /c/en/athlete --> /r/Antonym 4
+** /c/en/athlete <-- /r/InstanceOf 268010
+** /c/en/athlete <-- /r/IsA 29285
+** /c/en/athlete <-- /r/RelatedTo 75
+** /c/en/athlete <-- /r/UsedFor 7
+** /c/en/athlete <-- /r/EtymologicallyDerivedFrom 5
+* /c/en/specie 253333
+** /c/en/specie --> /r/IsA 7
+** /c/en/specie --> /r/HasA 2
+** /c/en/specie --> /r/EtymologicallyDerivedFrom 2
+** /c/en/specie --> /r/PartOf 1
+** /c/en/specie <-- /r/InstanceOf 252066
+** /c/en/specie <-- /r/RelatedTo 707
+** /c/en/specie <-- /r/IsA 532
+** /c/en/specie <-- /r/EtymologicallyDerivedFrom 12
+** /c/en/specie <-- /r/Synonym 2
+* /c/en/eukaryote 247171
+** /c/en/eukaryote --> /r/IsA 4
+** /c/en/eukaryote --> /r/EtymologicallyDerivedFrom 3
+** /c/en/eukaryote --> /r/InstanceOf 2
+** /c/en/eukaryote --> /r/HasA 1
+** /c/en/eukaryote <-- /r/InstanceOf 247134
+** /c/en/eukaryote <-- /r/RelatedTo 19
+** /c/en/eukaryote <-- /r/IsA 4
+** /c/en/eukaryote <-- /r/EtymologicallyDerivedFrom 2
+** /c/en/eukaryote <-- /r/dbpedia/knownFor 1
+* /c/en/organisation 239852
+** /c/en/organisation --> /r/EtymologicallyDerivedFrom 2
+** /c/en/organisation --> /r/DerivedFrom 1
+** /c/en/organisation <-- /r/InstanceOf 239795
+** /c/en/organisation <-- /r/RelatedTo 48
+** /c/en/organisation <-- /r/IsA 2
+** /c/en/organisation <-- /r/EtymologicallyDerivedFrom 2
+** /c/en/organisation <-- /r/UsedFor 1
+* /c/en/animal 198848
+** /c/en/animal --> /r/RelatedTo 274
+** /c/en/animal --> /r/CapableOf 104
+** /c/en/animal --> /r/IsA 33
+** /c/en/animal --> /r/HasA 31
+** /c/en/animal --> /r/AtLocation 28
+** /c/en/animal <-- /r/InstanceOf 186668
+** /c/en/animal <-- /r/IsA 10253
+** /c/en/animal <-- /r/RelatedTo 1199
+** /c/en/animal <-- /r/PartOf 34
+** /c/en/animal <-- /r/AtLocation 18
+* /c/en/village 180269
+** /c/en/village --> /r/RelatedTo 40
+** /c/en/village --> /r/AtLocation 15
+** /c/en/village --> /r/IsA 10
+** /c/en/village --> /r/UsedFor 9
+** /c/en/village --> /r/HasA 2
+** /c/en/village <-- /r/InstanceOf 160768
+** /c/en/village <-- /r/IsA 19247
+** /c/en/village <-- /r/RelatedTo 138
+** /c/en/village <-- /r/AtLocation 14
+** /c/en/village <-- /r/EtymologicallyDerivedFrom 12
+* /c/en/musical_work 172140
+** /c/en/musical_work <-- /r/InstanceOf 172140
+* /c/en/architectural_structure 148240
+** /c/en/architectural_structure <-- /r/InstanceOf 148237
+** /c/en/architectural_structure <-- /r/IsA 2
+** /c/en/architectural_structure <-- /r/RelatedTo 1
+* /c/en/album 128391
+** /c/en/album --> /r/UsedFor 17
+** /c/en/album --> /r/AtLocation 12
+** /c/en/album --> /r/IsA 8
+** /c/en/album --> /r/dbpedia/genre 8
+** /c/en/album --> /r/RelatedTo 7
+** /c/en/album <-- /r/InstanceOf 118293
+** /c/en/album <-- /r/IsA 9994
+** /c/en/album <-- /r/RelatedTo 35
+** /c/en/album <-- /r/EtymologicallyDerivedFrom 3
+** /c/en/album <-- /r/Synonym 2
+* /c/en/soccer_player 106637
+** /c/en/soccer_player --> /r/CapableOf 4
+** /c/en/soccer_player --> /r/AtLocation 2
+** /c/en/soccer_player --> /r/IsA 2
+** /c/en/soccer_player --> /r/DerivedFrom 1
+** /c/en/soccer_player <-- /r/InstanceOf 96622
+** /c/en/soccer_player <-- /r/IsA 10001
+** /c/en/soccer_player <-- /r/Synonym 4
+** /c/en/soccer_player <-- /r/RelatedTo 1
+* /c/en/insect 104278
+** /c/en/insect --> /r/RelatedTo 41
+** /c/en/insect --> /r/IsA 15
+** /c/en/insect --> /r/AtLocation 12
+** /c/en/insect --> /r/CapableOf 5
+** /c/en/insect --> /r/HasProperty 4
+** /c/en/insect <-- /r/InstanceOf 93574
+** /c/en/insect <-- /r/IsA 10034
+** /c/en/insect <-- /r/RelatedTo 557
+** /c/en/insect <-- /r/EtymologicallyDerivedFrom 17
+** /c/en/insect <-- /r/Synonym 3
+* /c/en/film 87722
+** /c/en/film --> /r/IsA 16
+** /c/en/film --> /r/RelatedTo 15
+** /c/en/film --> /r/ReceivesAction 8
+** /c/en/film --> /r/InstanceOf 6
+** /c/en/film --> /r/AtLocation 6
+** /c/en/film <-- /r/InstanceOf 87012
+** /c/en/film <-- /r/RelatedTo 411
+** /c/en/film <-- /r/dbpedia/genre 90
+** /c/en/film <-- /r/dbpedia/field 72
+** /c/en/film <-- /r/EtymologicallyDerivedFrom 29
+* /c/en/build 84575
+** /c/en/build --> /r/RelatedTo 129
+** /c/en/build --> /r/IsA 21
+** /c/en/build --> /r/UsedFor 19
+** /c/en/build --> /r/HasProperty 16
+** /c/en/build --> /r/HasA 14
+** /c/en/build <-- /r/InstanceOf 67661
+** /c/en/build <-- /r/IsA 15571
+** /c/en/build <-- /r/RelatedTo 711
+** /c/en/build <-- /r/AtLocation 266
+** /c/en/build <-- /r/EtymologicallyDerivedFrom 44
+* /c/en/infrastructure 71772
+** /c/en/infrastructure --> /r/EtymologicallyDerivedFrom 2
+** /c/en/infrastructure --> /r/DerivedFrom 1
+** /c/en/infrastructure --> /r/CapableOf 1
+** /c/en/infrastructure <-- /r/InstanceOf 71731
+** /c/en/infrastructure <-- /r/RelatedTo 32
+** /c/en/infrastructure <-- /r/EtymologicallyDerivedFrom 3
+** /c/en/infrastructure <-- /r/PartOf 1
+** /c/en/infrastructure <-- /r/dbpedia/knownFor 1
+* /c/en/company 58879
+** /c/en/company --> /r/RelatedTo 287
+** /c/en/company --> /r/CapableOf 42
+** /c/en/company --> /r/Antonym 15
+** /c/en/company --> /r/AtLocation 15
+** /c/en/company --> /r/UsedFor 13
+** /c/en/company <-- /r/InstanceOf 58096
+** /c/en/company <-- /r/RelatedTo 310
+** /c/en/company <-- /r/IsA 27
+** /c/en/company <-- /r/MotivatedByGoal 6
+** /c/en/company <-- /r/PartOf 6
+* /c/en/natural_place 58270
+** /c/en/natural_place <-- /r/InstanceOf 58269
+** /c/en/natural_place <-- /r/IsA 1
+* /c/en/event 57602
+** /c/en/event --> /r/RelatedTo 108
+** /c/en/event --> /r/CapableOf 8
+** /c/en/event --> /r/IsA 5
+** /c/en/event --> /r/InstanceOf 2
+** /c/en/event --> /r/HasProperty 2
+** /c/en/event <-- /r/InstanceOf 45005
+** /c/en/event <-- /r/IsA 11877
+** /c/en/event <-- /r/RelatedTo 571
+** /c/en/event <-- /r/EtymologicallyDerivedFrom 9
+** /c/en/event <-- /r/Synonym 5
+* /c/en/write_work 55212
+** /c/en/write_work --> /r/Synonym 1
+** /c/en/write_work <-- /r/InstanceOf 55209
+** /c/en/write_work <-- /r/RelatedTo 2
+* /c/en/plant 53113
+** /c/en/plant --> /r/RelatedTo 405
+** /c/en/plant --> /r/CapableOf 29
+** /c/en/plant --> /r/AtLocation 22
+** /c/en/plant --> /r/IsA 21
+** /c/en/plant --> /r/HasA 20
+** /c/en/plant <-- /r/InstanceOf 50400
+** /c/en/plant <-- /r/RelatedTo 1806
+** /c/en/plant <-- /r/IsA 195
+** /c/en/plant <-- /r/PartOf 58
+** /c/en/plant <-- /r/EtymologicallyDerivedFrom 28
+* /c/en/politician 50781
+** /c/en/politician --> /r/RelatedTo 75
+** /c/en/politician --> /r/CapableOf 59
+** /c/en/politician --> /r/Desires 11
+** /c/en/politician --> /r/IsA 9
+** /c/en/politician --> /r/AtLocation 8
+** /c/en/politician <-- /r/InstanceOf 40247
+** /c/en/politician <-- /r/IsA 10212
+** /c/en/politician <-- /r/RelatedTo 101
+** /c/en/politician <-- /r/dbpedia/knownFor 9
+** /c/en/politician <-- /r/EtymologicallyDerivedFrom 7
+* /c/en/educational_institution 48879
+** /c/en/educational_institution --> /r/Synonym 1
+** /c/en/educational_institution <-- /r/InstanceOf 48874
+** /c/en/educational_institution <-- /r/RelatedTo 2
+** /c/en/educational_institution <-- /r/IsA 2
+* /c/en/mean_of_transportation 47464
+** /c/en/mean_of_transportation <-- /r/InstanceOf 47452
+** /c/en/mean_of_transportation <-- /r/IsA 7
+** /c/en/mean_of_transportation <-- /r/RelatedTo 3
+** /c/en/mean_of_transportation <-- /r/HasPrerequisite 2
+* /c/en/office_holder 47425
+** /c/en/office_holder <-- /r/InstanceOf 47425
+* /c/en/body_of_water 47362
+** /c/en/body_of_water --> /r/IsA 3
+** /c/en/body_of_water --> /r/InstanceOf 2
+** /c/en/body_of_water --> /r/dbpedia/genre 1
+** /c/en/body_of_water --> /r/DerivedFrom 1
+** /c/en/body_of_water --> /r/HasProperty 1
+** /c/en/body_of_water <-- /r/InstanceOf 37311
+** /c/en/body_of_water <-- /r/IsA 10026
+** /c/en/body_of_water <-- /r/RelatedTo 9
+** /c/en/body_of_water <-- /r/AtLocation 7
+** /c/en/body_of_water <-- /r/Synonym 1
+* /c/en/musical_artist 44949
+** /c/en/musical_artist --> /r/Synonym 1
+** /c/en/musical_artist <-- /r/InstanceOf 44948
+* /c/en/societal_event 44624
+** /c/en/societal_event --> /r/Synonym 1
+** /c/en/societal_event <-- /r/InstanceOf 44623
+* /c/en/single 44567
+** /c/en/single --> /r/IsA 4
+** /c/en/single --> /r/InstanceOf 3
+** /c/en/single --> /r/dbpedia/genre 3
+** /c/en/single --> /r/EtymologicallyDerivedFrom 3
+** /c/en/single --> /r/DerivedFrom 1
+** /c/en/single <-- /r/InstanceOf 44238
+** /c/en/single <-- /r/RelatedTo 265
+** /c/en/single <-- /r/Antonym 19
+** /c/en/single <-- /r/EtymologicallyDerivedFrom 18
+** /c/en/single <-- /r/Synonym 13
+* /c/en/town 44074
+** /c/en/town --> /r/RelatedTo 16
+** /c/en/town --> /r/UsedFor 14
+** /c/en/town --> /r/AtLocation 12
+** /c/en/town --> /r/IsA 9
+** /c/en/town --> /r/HasProperty 2
+** /c/en/town <-- /r/InstanceOf 43337
+** /c/en/town <-- /r/RelatedTo 393
+** /c/en/town <-- /r/AtLocation 218
+** /c/en/town <-- /r/EtymologicallyDerivedFrom 36
+** /c/en/town <-- /r/IsA 19
+* /c/en/book 42612
+** /c/en/book --> /r/UsedFor 370
+** /c/en/book --> /r/RelatedTo 265
+** /c/en/book --> /r/AtLocation 123
+** /c/en/book --> /r/IsA 83
+** /c/en/book --> /r/HasA 71
+** /c/en/book <-- /r/InstanceOf 30755
+** /c/en/book <-- /r/IsA 10010
+** /c/en/book <-- /r/RelatedTo 513
+** /c/en/book <-- /r/EtymologicallyDerivedFrom 103
+** /c/en/book <-- /r/AtLocation 70
+* /c/en/school 40979
+** /c/en/school --> /r/RelatedTo 238
+** /c/en/school --> /r/UsedFor 36
+** /c/en/school --> /r/IsA 35
+** /c/en/school --> /r/AtLocation 19
+** /c/en/school --> /r/CapableOf 10
+** /c/en/school <-- /r/InstanceOf 29890
+** /c/en/school <-- /r/IsA 9981
+** /c/en/school <-- /r/RelatedTo 387
+** /c/en/school <-- /r/AtLocation 252
+** /c/en/school <-- /r/EtymologicallyDerivedFrom 46
+* /c/en/band 40873
+** /c/en/band --> /r/RelatedTo 219
+** /c/en/band --> /r/CapableOf 16
+** /c/en/band --> /r/Antonym 14
+** /c/en/band --> /r/IsA 7
+** /c/en/band --> /r/EtymologicallyDerivedFrom 5
+** /c/en/band <-- /r/InstanceOf 30228
+** /c/en/band <-- /r/IsA 9993
+** /c/en/band <-- /r/RelatedTo 257
+** /c/en/band <-- /r/EtymologicallyDerivedFrom 52
+** /c/en/band <-- /r/AtLocation 51
+* /c/en/ship 38433
+** /c/en/ship --> /r/CapableOf 29
+** /c/en/ship --> /r/IsA 23
+** /c/en/ship --> /r/RelatedTo 13
+** /c/en/ship --> /r/EtymologicallyDerivedFrom 9
+** /c/en/ship --> /r/AtLocation 8
+** /c/en/ship <-- /r/InstanceOf 27105
+** /c/en/ship <-- /r/IsA 10026
+** /c/en/ship <-- /r/RelatedTo 636
+** /c/en/ship <-- /r/EtymologicallyDerivedFrom 501
+** /c/en/ship <-- /r/AtLocation 21
+* /c/en/river 37254
+** /c/en/river --> /r/RelatedTo 413
+** /c/en/river --> /r/UsedFor 31
+** /c/en/river --> /r/CapableOf 20
+** /c/en/river --> /r/AtLocation 18
+** /c/en/river --> /r/IsA 17
+** /c/en/river <-- /r/InstanceOf 26276
+** /c/en/river <-- /r/IsA 10001
+** /c/en/river <-- /r/RelatedTo 387
+** /c/en/river <-- /r/AtLocation 23
+** /c/en/river <-- /r/EtymologicallyDerivedFrom 22
+* /c/en/writer 36832
+** /c/en/writer --> /r/CapableOf 19
+** /c/en/writer --> /r/AtLocation 14
+** /c/en/writer --> /r/UsedFor 9
+** /c/en/writer --> /r/IsA 5
+** /c/en/writer --> /r/InstanceOf 4
+** /c/en/writer <-- /r/InstanceOf 27756
+** /c/en/writer <-- /r/IsA 8773
+** /c/en/writer <-- /r/RelatedTo 156
+** /c/en/writer <-- /r/dbpedia/field 32
+** /c/en/writer <-- /r/dbpedia/knownFor 24
+* /c/en/actor 34634
+** /c/en/actor --> /r/CapableOf 37
+** /c/en/actor --> /r/AtLocation 14
+** /c/en/actor --> /r/IsA 6
+** /c/en/actor --> /r/InstanceOf 5
+** /c/en/actor --> /r/HasProperty 3
+** /c/en/actor <-- /r/InstanceOf 23290
+** /c/en/actor <-- /r/IsA 11061
+** /c/en/actor <-- /r/RelatedTo 150
+** /c/en/actor <-- /r/dbpedia/knownFor 20
+** /c/en/actor <-- /r/dbpedia/field 11
+* /c/en/city 32676
+** /c/en/city --> /r/RelatedTo 293
+** /c/en/city --> /r/IsA 35
+** /c/en/city --> /r/HasA 23
+** /c/en/city --> /r/AtLocation 22
+** /c/en/city --> /r/Antonym 17
+** /c/en/city <-- /r/InstanceOf 20969
+** /c/en/city <-- /r/IsA 10147
+** /c/en/city <-- /r/RelatedTo 677
+** /c/en/city <-- /r/AtLocation 385
+** /c/en/city <-- /r/EtymologicallyDerivedFrom 23
+* /c/en/software 31634
+** /c/en/software --> /r/RelatedTo 17
+** /c/en/software --> /r/IsA 9
+** /c/en/software --> /r/UsedFor 4
+** /c/en/software --> /r/ReceivesAction 4
+** /c/en/software --> /r/CapableOf 3
+** /c/en/software <-- /r/InstanceOf 31150
+** /c/en/software <-- /r/RelatedTo 381
+** /c/en/software <-- /r/IsA 18
+** /c/en/software <-- /r/dbpedia/genre 18
+** /c/en/software <-- /r/EtymologicallyDerivedFrom 13
+* /c/en/baseball_player 30666
+** /c/en/baseball_player --> /r/CapableOf 19
+** /c/en/baseball_player --> /r/IsA 11
+** /c/en/baseball_player --> /r/HasProperty 3
+** /c/en/baseball_player --> /r/HasA 2
+** /c/en/baseball_player --> /r/AtLocation 2
+** /c/en/baseball_player <-- /r/InstanceOf 20610
+** /c/en/baseball_player <-- /r/IsA 10005
+** /c/en/baseball_player <-- /r/RelatedTo 6
+** /c/en/baseball_player <-- /r/UsedFor 3
+** /c/en/baseball_player <-- /r/Synonym 1
+* /c/en/fish 29688
+** /c/en/fish --> /r/RelatedTo 377
+** /c/en/fish --> /r/IsA 53
+** /c/en/fish --> /r/HasSubevent 52
+** /c/en/fish --> /r/AtLocation 51
+** /c/en/fish --> /r/HasPrerequisite 42
+** /c/en/fish <-- /r/InstanceOf 17417
+** /c/en/fish <-- /r/IsA 10054
+** /c/en/fish <-- /r/RelatedTo 1099
+** /c/en/fish <-- /r/EtymologicallyDerivedFrom 210
+** /c/en/fish <-- /r/UsedFor 31
+* /c/en/television_show 29154
+** /c/en/television_show --> /r/AtLocation 3
+** /c/en/television_show --> /r/ReceivesAction 3
+** /c/en/television_show --> /r/Synonym 1
+** /c/en/television_show --> /r/CapableOf 1
+** /c/en/television_show <-- /r/InstanceOf 29126
+** /c/en/television_show <-- /r/RelatedTo 10
+** /c/en/television_show <-- /r/IsA 8
+** /c/en/television_show <-- /r/AtLocation 2
+* /c/en/radio_station 28516
+** /c/en/radio_station --> /r/IsA 7
+** /c/en/radio_station --> /r/CapableOf 3
+** /c/en/radio_station --> /r/HasA 1
+** /c/en/radio_station --> /r/AtLocation 1
+** /c/en/radio_station --> /r/DerivedFrom 1
+** /c/en/radio_station <-- /r/InstanceOf 18485
+** /c/en/radio_station <-- /r/IsA 9998
+** /c/en/radio_station <-- /r/RelatedTo 10
+** /c/en/radio_station <-- /r/AtLocation 8
+** /c/en/radio_station <-- /r/HasA 1
+* /c/en/station 28393
+** /c/en/station --> /r/RelatedTo 72
+** /c/en/station --> /r/Synonym 8
+** /c/en/station --> /r/AtLocation 2
+** /c/en/station --> /r/DefinedAs 1
+** /c/en/station --> /r/EtymologicallyDerivedFrom 1
+** /c/en/station <-- /r/InstanceOf 28178
+** /c/en/station <-- /r/RelatedTo 112
+** /c/en/station <-- /r/EtymologicallyDerivedFrom 9
+** /c/en/station <-- /r/AtLocation 7
+** /c/en/station <-- /r/Synonym 2
+* /c/en/sport_team 28318
+** /c/en/sport_team --> /r/HasA 2
+** /c/en/sport_team --> /r/IsA 2
+** /c/en/sport_team --> /r/AtLocation 1
+** /c/en/sport_team --> /r/CapableOf 1
+** /c/en/sport_team <-- /r/InstanceOf 28289
+** /c/en/sport_team <-- /r/IsA 21
+** /c/en/sport_team <-- /r/RelatedTo 2
+* /c/en/university 27989
+** /c/en/university --> /r/RelatedTo 36
+** /c/en/university --> /r/IsA 25
+** /c/en/university --> /r/UsedFor 20
+** /c/en/university --> /r/AtLocation 6
+** /c/en/university --> /r/CapableOf 5
+** /c/en/university <-- /r/InstanceOf 17530
+** /c/en/university <-- /r/IsA 10006
+** /c/en/university <-- /r/RelatedTo 202
+** /c/en/university <-- /r/AtLocation 126
+** /c/en/university <-- /r/EtymologicallyDerivedFrom 9
+* /c/en/mollusca 27697
+** /c/en/mollusca --> /r/IsA 3
+** /c/en/mollusca --> /r/Synonym 1
+** /c/en/mollusca <-- /r/InstanceOf 27691
+** /c/en/mollusca <-- /r/EtymologicallyDerivedFrom 2
+* /c/en/broadcaster 27109
+** /c/en/broadcaster <-- /r/InstanceOf 27094
+** /c/en/broadcaster <-- /r/RelatedTo 14
+** /c/en/broadcaster <-- /r/EtymologicallyDerivedFrom 1
+* /c/en/scientist 27092
+** /c/en/scientist --> /r/CapableOf 43
+** /c/en/scientist --> /r/IsA 11
+** /c/en/scientist --> /r/HasProperty 7
+** /c/en/scientist --> /r/dbpedia/genre 7
+** /c/en/scientist --> /r/InstanceOf 5
+** /c/en/scientist <-- /r/InstanceOf 18359
+** /c/en/scientist <-- /r/IsA 8513
+** /c/en/scientist <-- /r/RelatedTo 85
+** /c/en/scientist <-- /r/dbpedia/field 15
+** /c/en/scientist <-- /r/UsedFor 14
+* /c/en/sport_season 26996
+** /c/en/sport_season --> /r/CapableOf 1
+** /c/en/sport_season --> /r/IsA 1
+** /c/en/sport_season <-- /r/InstanceOf 26992
+** /c/en/sport_season <-- /r/IsA 1
+** /c/en/sport_season <-- /r/AtLocation 1
+* /c/en/stream 26912
+** /c/en/stream --> /r/UsedFor 16
+** /c/en/stream --> /r/AtLocation 8
+** /c/en/stream --> /r/IsA 8
+** /c/en/stream --> /r/CapableOf 5
+** /c/en/stream --> /r/HasProperty 4
+** /c/en/stream <-- /r/InstanceOf 26602
+** /c/en/stream <-- /r/RelatedTo 197
+** /c/en/stream <-- /r/EtymologicallyDerivedFrom 36
+** /c/en/stream <-- /r/Synonym 12
+** /c/en/stream <-- /r/AtLocation 8
+* /c/en/sport_event 26210
+** /c/en/sport_event --> /r/IsA 3
+** /c/en/sport_event --> /r/HasA 1
+** /c/en/sport_event --> /r/CausesDesire 1
+** /c/en/sport_event --> /r/CapableOf 1
+** /c/en/sport_event --> /r/AtLocation 1
+** /c/en/sport_event <-- /r/InstanceOf 23414
+** /c/en/sport_event <-- /r/IsA 2673
+** /c/en/sport_event <-- /r/AtLocation 108
+** /c/en/sport_event <-- /r/RelatedTo 7
+* /c/en/military_person 25553
+** /c/en/military_person --> /r/CapableOf 2
+** /c/en/military_person --> /r/Synonym 1
+** /c/en/military_person --> /r/IsA 1
+** /c/en/military_person <-- /r/InstanceOf 25546
+** /c/en/military_person <-- /r/RelatedTo 3
+* /c/en/route_of_transportation 25363
+** /c/en/route_of_transportation <-- /r/InstanceOf 25363
+* /c/en/pop_music 24648
+** /c/en/pop_music --> /r/InstanceOf 3
+** /c/en/pop_music --> /r/DerivedFrom 2
+** /c/en/pop_music --> /r/IsA 2
+** /c/en/pop_music --> /r/AtLocation 1
+** /c/en/pop_music --> /r/ReceivesAction 1
+** /c/en/pop_music <-- /r/dbpedia/genre 24599
+** /c/en/pop_music <-- /r/RelatedTo 38
+** /c/en/pop_music <-- /r/Synonym 1
+** /c/en/pop_music <-- /r/EtymologicallyDerivedFrom 1
+* /c/en/sport_team_season 24607
+** /c/en/sport_team_season <-- /r/InstanceOf 24607
+* /c/en/airport 23270
+** /c/en/airport --> /r/IsA 15
+** /c/en/airport --> /r/HasA 4
+** /c/en/airport --> /r/HasProperty 4
+** /c/en/airport --> /r/EtymologicallyDerivedFrom 2
+** /c/en/airport --> /r/DerivedFrom 2
+** /c/en/airport <-- /r/InstanceOf 13465
+** /c/en/airport <-- /r/IsA 9512
+** /c/en/airport <-- /r/AtLocation 174
+** /c/en/airport <-- /r/RelatedTo 73
+** /c/en/airport <-- /r/EtymologicallyDerivedFrom 6
+* /c/en/mountain 22983
+** /c/en/mountain --> /r/RelatedTo 335
+** /c/en/mountain --> /r/IsA 30
+** /c/en/mountain --> /r/AtLocation 25
+** /c/en/mountain --> /r/HasProperty 22
+** /c/en/mountain --> /r/Antonym 20
+** /c/en/mountain <-- /r/InstanceOf 13736
+** /c/en/mountain <-- /r/IsA 8468
+** /c/en/mountain <-- /r/RelatedTo 230
+** /c/en/mountain <-- /r/AtLocation 52
+** /c/en/mountain <-- /r/EtymologicallyDerivedFrom 13
+* /c/en/celestial_body 22913
+** /c/en/celestial_body --> /r/DerivedFrom 1
+** /c/en/celestial_body <-- /r/InstanceOf 22876
+** /c/en/celestial_body <-- /r/RelatedTo 31
+** /c/en/celestial_body <-- /r/Synonym 3
+** /c/en/celestial_body <-- /r/IsA 2
+* /c/en/planet 22323
+** /c/en/planet --> /r/AtLocation 65
+** /c/en/planet --> /r/IsA 38
+** /c/en/planet --> /r/RelatedTo 34
+** /c/en/planet --> /r/UsedFor 21
+** /c/en/planet --> /r/HasProperty 15
+** /c/en/planet <-- /r/InstanceOf 11791
+** /c/en/planet <-- /r/IsA 10016
+** /c/en/planet <-- /r/RelatedTo 270
+** /c/en/planet <-- /r/EtymologicallyDerivedFrom 16
+** /c/en/planet <-- /r/AtLocation 15
+* /c/en/region 21926
+** /c/en/region --> /r/RelatedTo 7
+** /c/en/region --> /r/IsA 2
+** /c/en/region <-- /r/InstanceOf 21609
+** /c/en/region <-- /r/RelatedTo 285
+** /c/en/region <-- /r/EtymologicallyDerivedFrom 10
+** /c/en/region <-- /r/IsA 6
+** /c/en/region <-- /r/Synonym 3
+* /c/en/rock_music 21902
+** /c/en/rock_music --> /r/HasProperty 4
+** /c/en/rock_music --> /r/InstanceOf 3
+** /c/en/rock_music --> /r/ReceivesAction 2
+** /c/en/rock_music --> /r/IsA 2
+** /c/en/rock_music --> /r/CreatedBy 1
+** /c/en/rock_music <-- /r/dbpedia/genre 21797
+** /c/en/rock_music <-- /r/RelatedTo 55
+** /c/en/rock_music <-- /r/IsA 21
+** /c/en/rock_music <-- /r/InstanceOf 11
+** /c/en/rock_music <-- /r/dbpedia/influencedBy 2
+* /c/en/administrative_region 21587
+** /c/en/administrative_region <-- /r/InstanceOf 21585
+** /c/en/administrative_region <-- /r/RelatedTo 2
+* /c/en/mammal 21022
+** /c/en/mammal --> /r/RelatedTo 57
+** /c/en/mammal --> /r/IsA 15
+** /c/en/mammal --> /r/HasA 10
+** /c/en/mammal --> /r/CapableOf 10
+** /c/en/mammal --> /r/HasProperty 6
+** /c/en/mammal <-- /r/InstanceOf 12184
+** /c/en/mammal <-- /r/IsA 8347
+** /c/en/mammal <-- /r/RelatedTo 346
+** /c/en/mammal <-- /r/AtLocation 5
+** /c/en/mammal <-- /r/Antonym 4
+* /c/en/gridiron_football_player 20662
+** /c/en/gridiron_football_player <-- /r/InstanceOf 20662
+* /c/en/ice_hockey_player 20166
+** /c/en/ice_hockey_player --> /r/IsA 2
+** /c/en/ice_hockey_player --> /r/HasA 1
+** /c/en/ice_hockey_player <-- /r/InstanceOf 13858
+** /c/en/ice_hockey_player <-- /r/IsA 6304
+** /c/en/ice_hockey_player <-- /r/RelatedTo 1
+* /c/en/video_game 19493
+** /c/en/video_game --> /r/AtLocation 5
+** /c/en/video_game --> /r/NotCapableOf 1
+** /c/en/video_game --> /r/DerivedFrom 1
+** /c/en/video_game --> /r/IsA 1
+** /c/en/video_game --> /r/Synonym 1
+** /c/en/video_game <-- /r/InstanceOf 19229
+** /c/en/video_game <-- /r/RelatedTo 161
+** /c/en/video_game <-- /r/dbpedia/genre 84
+** /c/en/video_game <-- /r/dbpedia/field 3
+** /c/en/video_game <-- /r/IsA 2
+* /c/en/road 19445
+** /c/en/road --> /r/RelatedTo 314
+** /c/en/road --> /r/UsedFor 17
+** /c/en/road --> /r/CapableOf 14
+** /c/en/road --> /r/IsA 13
+** /c/en/road --> /r/HasProperty 13
+** /c/en/road <-- /r/InstanceOf 18626
+** /c/en/road <-- /r/RelatedTo 319
+** /c/en/road <-- /r/EtymologicallyDerivedFrom 36
+** /c/en/road <-- /r/AtLocation 21
+** /c/en/road <-- /r/IsA 18
+* /c/en/soccer_club 18987
+** /c/en/soccer_club <-- /r/InstanceOf 18987
+* /c/en/lake 18766
+** /c/en/lake --> /r/RelatedTo 139
+** /c/en/lake --> /r/IsA 28
+** /c/en/lake --> /r/UsedFor 25
+** /c/en/lake --> /r/AtLocation 25
+** /c/en/lake --> /r/EtymologicallyDerivedFrom 10
+** /c/en/lake <-- /r/InstanceOf 10120
+** /c/en/lake <-- /r/IsA 8168
+** /c/en/lake <-- /r/RelatedTo 160
+** /c/en/lake <-- /r/AtLocation 32
+** /c/en/lake <-- /r/EtymologicallyDerivedFrom 25
+* /c/en/device 18438
+** /c/en/device --> /r/RelatedTo 8
+** /c/en/device --> /r/CapableOf 3
+** /c/en/device --> /r/IsA 3
+** /c/en/device --> /r/UsedFor 1
+** /c/en/device --> /r/AtLocation 1
+** /c/en/device <-- /r/IsA 9873
+** /c/en/device <-- /r/InstanceOf 7678
+** /c/en/device <-- /r/RelatedTo 855
+** /c/en/device <-- /r/Synonym 8
+** /c/en/device <-- /r/EtymologicallyDerivedFrom 5
+* /c/en/populate_area 17968
+** /c/en/populate_area --> /r/IsA 4
+** /c/en/populate_area <-- /r/IsA 17952
+** /c/en/populate_area <-- /r/AtLocation 9
+** /c/en/populate_area <-- /r/Synonym 2
+** /c/en/populate_area <-- /r/RelatedTo 1
+* /c/en/business 17924
+** /c/en/business --> /r/RelatedTo 177
+** /c/en/business --> /r/UsedFor 21
+** /c/en/business --> /r/CapableOf 8
+** /c/en/business --> /r/Antonym 8
+** /c/en/business --> /r/IsA 7
+** /c/en/business <-- /r/IsA 16770
+** /c/en/business <-- /r/RelatedTo 419
+** /c/en/business <-- /r/InstanceOf 330
+** /c/en/business <-- /r/dbpedia/genre 67
+** /c/en/business <-- /r/EtymologicallyDerivedFrom 23
+* /c/en/biomolecule 17709
+** /c/en/biomolecule --> /r/EtymologicallyDerivedFrom 2
+** /c/en/biomolecule <-- /r/InstanceOf 17697
+** /c/en/biomolecule <-- /r/RelatedTo 10
+* /c/en/unite_state 17422
+** /c/en/unite_state --> /r/IsA 32
+** /c/en/unite_state --> /r/UsedFor 22
+** /c/en/unite_state --> /r/HasA 15
+** /c/en/unite_state --> /r/AtLocation 10
+** /c/en/unite_state --> /r/HasProperty 4
+** /c/en/unite_state <-- /r/AtLocation 16399
+** /c/en/unite_state <-- /r/RelatedTo 505
+** /c/en/unite_state <-- /r/dbpedia/spokenIn 257
+** /c/en/unite_state <-- /r/InstanceOf 61
+** /c/en/unite_state <-- /r/PartOf 54
+* /c/en/alternative_rock 16696
+** /c/en/alternative_rock --> /r/IsA 5
+** /c/en/alternative_rock --> /r/InstanceOf 3
+** /c/en/alternative_rock --> /r/DerivedFrom 1
+** /c/en/alternative_rock <-- /r/dbpedia/genre 16670
+** /c/en/alternative_rock <-- /r/RelatedTo 13
+** /c/en/alternative_rock <-- /r/Synonym 3
+** /c/en/alternative_rock <-- /r/InstanceOf 1
+* /c/en/fungus 16628
+** /c/en/fungus --> /r/AtLocation 240
+** /c/en/fungus --> /r/IsA 9
+** /c/en/fungus --> /r/InstanceOf 3
+** /c/en/fungus --> /r/CapableOf 2
+** /c/en/fungus --> /r/NotIsA 1
+** /c/en/fungus <-- /r/InstanceOf 9118
+** /c/en/fungus <-- /r/IsA 6973
+** /c/en/fungus <-- /r/RelatedTo 267
+** /c/en/fungus <-- /r/EtymologicallyDerivedFrom 6
+** /c/en/fungus <-- /r/dbpedia/knownFor 3
+* /c/en/periodical_literature 15789
+** /c/en/periodical_literature <-- /r/InstanceOf 15785
+** /c/en/periodical_literature <-- /r/dbpedia/genre 4
+* /c/en/unincorporated_area 15057
+** /c/en/unincorporated_area <-- /r/InstanceOf 15052
+** /c/en/unincorporated_area <-- /r/AtLocation 5
+* /c/en/military_unit 15012
+** /c/en/military_unit --> /r/Synonym 1
+** /c/en/military_unit <-- /r/InstanceOf 15010
+** /c/en/military_unit <-- /r/RelatedTo 1
+* /c/en/sport_manager 14570
+** /c/en/sport_manager <-- /r/InstanceOf 14570
+* /c/en/soccer_manager 14570
+** /c/en/soccer_manager <-- /r/InstanceOf 14570
+* /c/en/bird 14398
+** /c/en/bird --> /r/RelatedTo 243
+** /c/en/bird --> /r/CapableOf 98
+** /c/en/bird --> /r/HasA 39
+** /c/en/bird --> /r/AtLocation 38
+** /c/en/bird --> /r/IsA 37
+** /c/en/bird <-- /r/InstanceOf 12733
+** /c/en/bird <-- /r/RelatedTo 821
+** /c/en/bird <-- /r/IsA 158
+** /c/en/bird <-- /r/EtymologicallyDerivedFrom 108
+** /c/en/bird <-- /r/UsedFor 7
+* /c/en/protein 13891
+** /c/en/protein --> /r/IsA 6
+** /c/en/protein --> /r/ReceivesAction 3
+** /c/en/protein --> /r/InstanceOf 2
+** /c/en/protein --> /r/HasProperty 2
+** /c/en/protein --> /r/MadeOf 1
+** /c/en/protein <-- /r/InstanceOf 12814
+** /c/en/protein <-- /r/RelatedTo 1009
+** /c/en/protein <-- /r/EtymologicallyDerivedFrom 30
+** /c/en/protein <-- /r/IsA 13
+** /c/en/protein <-- /r/HasA 3
+* /c/en/american_football_player 13867
+** /c/en/american_football_player <-- /r/InstanceOf 13867
+* /c/en/historic_place 13721
+** /c/en/historic_place <-- /r/InstanceOf 13721
+* /c/en/stadium 13567
+** /c/en/stadium --> /r/RelatedTo 29
+** /c/en/stadium --> /r/UsedFor 21
+** /c/en/stadium --> /r/AtLocation 10
+** /c/en/stadium --> /r/IsA 9
+** /c/en/stadium --> /r/CapableOf 2
+** /c/en/stadium <-- /r/InstanceOf 8555
+** /c/en/stadium <-- /r/IsA 4809
+** /c/en/stadium <-- /r/AtLocation 83
+** /c/en/stadium <-- /r/RelatedTo 33
+** /c/en/stadium <-- /r/Synonym 5
+* /c/en/cricketer 13419
+** /c/en/cricketer --> /r/InstanceOf 4
+** /c/en/cricketer --> /r/RelatedTo 3
+** /c/en/cricketer --> /r/EtymologicallyDerivedFrom 2
+** /c/en/cricketer --> /r/CapableOf 1
+** /c/en/cricketer --> /r/dbpedia/genre 1
+** /c/en/cricketer <-- /r/InstanceOf 13403
+** /c/en/cricketer <-- /r/RelatedTo 5
+* /c/en/member_of_parliament 13130
+** /c/en/member_of_parliament --> /r/DerivedFrom 1
+** /c/en/member_of_parliament --> /r/IsA 1
+** /c/en/member_of_parliament <-- /r/InstanceOf 9151
+** /c/en/member_of_parliament <-- /r/IsA 3951
+** /c/en/member_of_parliament <-- /r/dbpedia/knownFor 14
+** /c/en/member_of_parliament <-- /r/RelatedTo 9
+** /c/en/member_of_parliament <-- /r/Synonym 2
+* /c/en/amphibian 12812
+** /c/en/amphibian --> /r/IsA 8
+** /c/en/amphibian --> /r/RelatedTo 6
+** /c/en/amphibian --> /r/HasProperty 1
+** /c/en/amphibian --> /r/CapableOf 1
+** /c/en/amphibian <-- /r/IsA 6843
+** /c/en/amphibian <-- /r/InstanceOf 5891
+** /c/en/amphibian <-- /r/RelatedTo 58
+** /c/en/amphibian <-- /r/EtymologicallyDerivedFrom 2
+** /c/en/amphibian <-- /r/dbpedia/knownFor 1
+* /c/en/language 12730
+** /c/en/language --> /r/RelatedTo 161
+** /c/en/language --> /r/UsedFor 9
+** /c/en/language --> /r/ReceivesAction 9
+** /c/en/language --> /r/IsA 8
+** /c/en/language --> /r/HasProperty 4
+** /c/en/language <-- /r/InstanceOf 7912
+** /c/en/language <-- /r/IsA 3088
+** /c/en/language <-- /r/RelatedTo 1462
+** /c/en/language <-- /r/EtymologicallyDerivedFrom 27
+** /c/en/language <-- /r/HasPrerequisite 6
+* /c/en/rugby_player 12467
+** /c/en/rugby_player --> /r/Desires 2
+** /c/en/rugby_player --> /r/DerivedFrom 2
+** /c/en/rugby_player --> /r/CapableOf 1
+** /c/en/rugby_player --> /r/HasProperty 1
+** /c/en/rugby_player <-- /r/InstanceOf 12460
+** /c/en/rugby_player <-- /r/RelatedTo 1
+* /c/en/cleric 12459
+** /c/en/cleric --> /r/AtLocation 1
+** /c/en/cleric --> /r/Synonym 1
+** /c/en/cleric <-- /r/InstanceOf 12428
+** /c/en/cleric <-- /r/RelatedTo 26
+** /c/en/cleric <-- /r/Synonym 2
+** /c/en/cleric <-- /r/EtymologicallyDerivedFrom 1
+* /c/en/military_conflict 12230
+** /c/en/military_conflict <-- /r/InstanceOf 12228
+** /c/en/military_conflict <-- /r/RelatedTo 2
+* /c/en/tournament 12179
+** /c/en/tournament --> /r/IsA 1
+** /c/en/tournament <-- /r/InstanceOf 11015
+** /c/en/tournament <-- /r/IsA 1096
+** /c/en/tournament <-- /r/RelatedTo 62
+** /c/en/tournament <-- /r/EtymologicallyDerivedFrom 2
+** /c/en/tournament <-- /r/AtLocation 2
+* /c/en/artist 11921
+** /c/en/artist --> /r/CapableOf 45
+** /c/en/artist --> /r/RelatedTo 41
+** /c/en/artist --> /r/AtLocation 6
+** /c/en/artist --> /r/IsA 4
+** /c/en/artist --> /r/HasProperty 3
+** /c/en/artist <-- /r/IsA 11665
+** /c/en/artist <-- /r/RelatedTo 129
+** /c/en/artist <-- /r/EtymologicallyDerivedFrom 6
+** /c/en/artist <-- /r/CreatedBy 5
+** /c/en/artist <-- /r/Synonym 4
+* /c/en/jazz 11851
+** /c/en/jazz --> /r/IsA 9
+** /c/en/jazz --> /r/InstanceOf 6
+** /c/en/jazz --> /r/HasProperty 2
+** /c/en/jazz --> /r/AtLocation 1
+** /c/en/jazz --> /r/CreatedBy 1
+** /c/en/jazz <-- /r/dbpedia/genre 11716
+** /c/en/jazz <-- /r/RelatedTo 64
+** /c/en/jazz <-- /r/InstanceOf 24
+** /c/en/jazz <-- /r/EtymologicallyDerivedFrom 12
+** /c/en/jazz <-- /r/dbpedia/influencedBy 6
+* /c/en/site 11733
+** /c/en/site --> /r/RelatedTo 23
+** /c/en/site --> /r/InstanceOf 1
+** /c/en/site --> /r/Synonym 1
+** /c/en/site --> /r/IsA 1
+** /c/en/site <-- /r/IsA 11543
+** /c/en/site <-- /r/RelatedTo 131
+** /c/en/site <-- /r/EtymologicallyDerivedFrom 28
+** /c/en/site <-- /r/Synonym 4
+** /c/en/site <-- /r/HasPrerequisite 1
