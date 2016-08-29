@@ -5,6 +5,8 @@
 # Getting started
 
 ```bash
+> git clone https://github.com/wiredtiger/wiredtiger --branch=develop --depth=1
+> cd wiredtiger && ./autogen.sh && ./configure --enable-python && make
 > pip install ajgudb
 ```
 
