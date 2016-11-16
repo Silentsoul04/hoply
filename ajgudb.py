@@ -56,9 +56,10 @@ WT_NOT_FOUND = -31803
 
 class AjguDB(object):
 
-    def __init__(self, path):
+    def __init__(self, path, logging=False):
         # init wiredtiger
-        self._wiredtiger = wiredtiger_open(path, 'create')
+        config = 'create,log=(enabled=true)' if logging else 'create'
+        self._wiredtiger = wiredtiger_open(path, config)
         session = self._wiredtiger.open_session()
 
         # sequence table of uids
