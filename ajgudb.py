@@ -217,8 +217,16 @@ class AjguDB(object):
                 uid = element.uid = self._next_uid()
             properties = dict(element)
             properties['__kind__'] = EDGE_KIND
-            properties['__start__'] = element.start.uid if (element.start.uid is not None) else self.save(element.start).uid
-            properties['__end__'] = element.end.uid if (element.end.uid is not None) else self.save(element.end).uid
+            if (element.start.uid is not None):
+                start = element.start.uid
+            else:
+                start = self.save(element.start).uid
+            properties['__start__'] = start
+            if (element.end.uid is not None):
+                end = element.end.uid
+            else:
+                end = self.save(element.end).uid
+            properties['__end__'] = end
             self._update(uid, properties)
             return element
         else:
