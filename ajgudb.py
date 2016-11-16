@@ -2,17 +2,48 @@
 # Copyright (C) 2015-2016 Amirouche Boubekki <amirouche@hypermove.net>
 from itertools import imap
 
+from json import loads
+from json import dumps
+
 from collections import namedtuple
 from collections import Counter
 
 from wiredtiger import wiredtiger_open
-from json import loads
-from json import dumps
 
 
 def pk(*args):
     print args
     return args[-1]
+
+
+def trigrams(string):
+    # cf. http://stackoverflow.com/a/17532044/140837
+    N = 3
+    for word in string.split():
+        token = '$' + word + '$'
+        for i in range(len(token)-N+1):
+            yield token[i:i+N]
+
+def levenshtein(s1, s2):
+    # cf. https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Python
+    if len(s1) < len(s2):
+        return levenshtein(s2, s1)
+
+    # len(s1) >= len(s2)
+    if len(s2) == 0:
+        return len(s1)
+
+    previous_row = range(len(s2) + 1)
+    for i, c1 in enumerate(s1):
+        current_row = [i + 1]
+        for j, c2 in enumerate(s2):
+            insertions = previous_row[j + 1] + 1 # j+1 instead of j since previous_row and current_row are one character longer
+            deletions = current_row[j] + 1       # than s2
+            substitutions = previous_row[j] + (c1 != c2)
+            current_row.append(min(insertions, deletions, substitutions))
+        previous_row = current_row
+
+    return previous_row[-1]
 
 
 VERTEX_KIND, EDGE_KIND = range(2)
@@ -73,7 +104,14 @@ class AjguDB(object):
         # reversed index for (key, value) querying
         session.create('index:tuples:index', 'columns=(key,value)')
         self._reversed = session.open_cursor('index:tuples:index(uid)')
-        
+
+        # fuzzy search
+        config = 'key_format=r,value_format=SQS,columns=(x,trigram,uid,string)'
+        session.create('table:trigrams', config)
+        self._trigrams = session.open_cursor('table:trigrams', None, 'append')
+        session.create('index:trigrams:index', 'columns=(trigram)')
+        self._trigrams_index = session.open_cursor('index:trigrams:index(uid,string)')
+
     def debug(self):
         self._tuples.reset()
         while self._tuples.next() != WT_NOT_FOUND:
@@ -245,6 +283,58 @@ class AjguDB(object):
                 return True, self.save(element)
         else:
             raise NotImplementedError('FIXME')
+
+    def index(self, element, string):
+        """Index element in the fuzzy index"""
+        if '__fuzzy__' in element:
+            msg = 'Element %s is already indexed as %s'
+            msg = msg % (element, element['__fuzzy__'])
+            raise RuntimeError(msg)
+        else:
+            element['__fuzzy__'] = string
+            uid = self.save(element).uid
+            for trigram in trigrams(string):
+                self._trigrams.set_value(trigram, uid, string)
+                self._trigrams.insert()
+
+    def like(self, that, limit=100, alpha=0, beta=-1):
+        # uid to score
+        count = Counter()
+        # uid to matched string
+        matches = dict()
+
+        for trigram in trigrams(that):
+            # do search
+            self._trigrams_index.set_key(trigram)
+            code = self._trigrams_index.search()
+
+            # not found
+            if code == WT_NOT_FOUND:
+                self._trigrams_index.reset()
+                continue
+
+            # it has results
+            while True:
+                other = self._trigrams_index.get_key()
+                if trigram == other:
+                    uid, string = self._trigrams_index.get_value()
+                    # collect result
+                    matches[uid] = string
+                    count[uid] += 1
+                    # next
+                    if self._trigrams_index.next() == WT_NOT_FOUND:
+                        self._trigrams_index.reset()
+                        break
+                else:
+                    self._trigrams_index.reset()
+                    break
+
+        # compute total score
+        score = Counter()
+        for uid, string in matches.iteritems():
+            score[uid] = alpha * count[uid] + beta * levenshtein(that, string)
+
+        return score.most_common(limit)
 
 
 GremlinResult = namedtuple('GremlinResult', ('value', 'parent'))

@@ -6,9 +6,17 @@ from unittest import TestCase
 from ajgudb import *
 
 
-def pk(*args):
-    print args
-    return args[-1]
+class TrigramTests(TestCase):
+
+    def test_single_word(self):
+        result = list(trigrams('abc'))
+        expected = ['$ab', 'abc', 'bc$']
+        self.assertEqual(result, expected)
+
+    def test_two_words(self):
+        result = list(trigrams('abc def'))
+        expected = ['$ab', 'abc', 'bc$', '$de', 'def', 'ef$']
+        self.assertEqual(result, expected)
 
 
 class DatabaseTestCase(TestCase):
@@ -298,3 +306,22 @@ class DatabaseTestCase(TestCase):
         query = gremlin(outgoings, scatter, end, value)
         out = list(query(self.graph, a))
         self.assertEqual(out, [2, 3, 4])
+
+    def test_like_single_item_in_db(self):
+        self.graph.index(Vertex(), 'abc')
+        self.assertEqual(self.graph.like('abc'), [(1, 0)])
+
+    def test_like_two_items_in_db(self):
+        self.graph.index(Vertex(), 'abc')
+        self.graph.index(Vertex(), 'def')
+        self.assertEqual(self.graph.like('abc'), [(1, 0)])
+
+    def test_like_abcdef_one(self):
+        self.graph.index(Vertex(), 'abc')
+        self.graph.index(Vertex(), 'def')
+        self.assertEqual(self.graph.like('abcdef'), [(1, -3), (2, -3)])
+
+    def test_like_abcdef_two(self):
+        self.graph.index(Vertex(), 'abcdef')
+        self.graph.index(Vertex(), 'def')
+        self.assertEqual(self.graph.like('abcdef'), [(1, 0), (2, -3)])
