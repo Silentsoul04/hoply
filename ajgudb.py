@@ -34,7 +34,7 @@ class Vertex(dict):
         return Edge(self, end, properties)
 
     def __repr__(self):
-        return '<Vertex uid:%s %s>' % (self.uid, super(Vertex, self).__repr__())
+        return '<Vertex uid:%s 0x%s>' % (self.uid, id(self))
 
 
 class Edge(dict):
@@ -48,7 +48,7 @@ class Edge(dict):
         super(Edge, self).__init__(properties)
 
     def __repr__(self):
-        return '<Edge uid:%s %s>' % (self.uid, super(Edge, self).__repr__())
+        return '<Edge uid:%s 0x%x>' % (self.uid, id(self))
 
 
 WT_NOT_FOUND = -31803
