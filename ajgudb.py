@@ -73,7 +73,7 @@ class AjguDB(object):
         # reversed index for (key, value) querying
         session.create('index:tuples:index', 'columns=(key,value)')
         self._reversed = session.open_cursor('index:tuples:index(uid)')
-
+        
     def debug(self):
         self._tuples.reset()
         while self._tuples.next() != WT_NOT_FOUND:
@@ -123,7 +123,7 @@ class AjguDB(object):
             self._tuples.set_value(dumps(value))
             self._tuples.insert()
 
-    def _index(self, key, value):
+    def search(self, key, value):
         value = dumps(value)
         self._reversed.set_key(key, value)
 
@@ -268,12 +268,12 @@ def gremlin(*steps):
 
 def VERTICES(ajgudb, _):
     """Seed step. Iterator over all vertices"""
-    for uid in ajgudb._index('__kind__', VERTEX_KIND):
+    for uid in ajgudb.search('__kind__', VERTEX_KIND):
         yield GremlinResult(uid, None)
 
 def EDGES(ajgudb, _):
     """Seed step. Iterator over all vertices"""
-    for uid in ajgudb._index('__kind__', EDGE_KIND):
+    for uid in ajgudb.search('__kind__', EDGE_KIND):
         yield GremlinResult(uid, None)
 
 def FROM(**kwargs):
@@ -285,7 +285,7 @@ def FROM(**kwargs):
     key, value = kwargs.items()[0]
 
     def step(ajgudb, _):
-        for uid in ajgudb._index(key, value):
+        for uid in ajgudb.search(key, value):
             yield GremlinResult(uid, None)
 
     return step
@@ -369,7 +369,7 @@ def incomings(ajgudb, iterator):
 
     Accepts vertex uids as input"""
     for item in iterator:
-        out = ajgudb._index('__end__', item.value)
+        out = ajgudb.search('__end__', item.value)
         yield GremlinResult(out, item)
 
 
@@ -379,7 +379,7 @@ def outgoings(ajgudb, iterator):
 
     Accepts vertex uids as input"""
     for item in iterator:
-        out = ajgudb._index('__start__', item.value)
+        out = ajgudb.search('__start__', item.value)
         yield GremlinResult(out, item)
 
 
