@@ -86,7 +86,7 @@ if __name__ == '__main__':
         query = args['QUERY']
         query = ' '.join(query)
         for uid, score in graph.like(query):
-            msg = '%s\t(uid: %s)\t(score: %s)'
+            msg = '(uid: %s)\t(score: %s)\t%s'
             concept = graph.get(uid)['concept'] 
-            print msg % (concept, uid, score)
+            print msg % (uid, score, concept)
     graph.close()
