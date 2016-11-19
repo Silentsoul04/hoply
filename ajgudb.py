@@ -1,12 +1,11 @@
 # AjuDB - graphdb for exploring your connected data
 # Copyright (C) 2015-2016 Amirouche Boubekki <amirouche@hypermove.net>
-from itertools import imap
-
-from json import loads
-from json import dumps
-
-from collections import namedtuple
 from collections import Counter
+from collections import namedtuple
+from contextlib import contextmanager
+from itertools import imap
+from json import dumps
+from json import loads
 
 from wiredtiger import wiredtiger_open
 
@@ -112,6 +111,19 @@ class AjguDB(object):
         session.create('index:trigrams:index', 'columns=(trigram)')
         self._trigrams_index = session.open_cursor('index:trigrams:index(uid,string)')
 
+        self._session = session
+
+    @contextmanager
+    def transaction(self):
+        self._session.begin_transaction()
+        try:
+            yield
+        except:
+            self._session.rollback_transaction()
+            raise
+        else:
+            self._session.commit_transaction()
+        
     def debug(self):
         self._tuples.reset()
         while self._tuples.next() != WT_NOT_FOUND:
