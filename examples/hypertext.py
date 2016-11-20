@@ -87,6 +87,44 @@ if __name__ == '__main__':
         query = ' '.join(query)
         for uid, score in graph.like(query):
             msg = '(uid: %s)\t(score: %s)\t%s'
-            concept = graph.get(uid)['concept'] 
+            concept = graph.get(uid)['concept']
             print msg % (uid, score, concept)
+
+    if args['wikidata'] and args['load']:
+        with open(args['FILENAME']) as f:
+            lines = iter(f)
+            next(lines)  # drop first line
+            for line in lines:
+                try:
+                    from json import loads
+                    entity = loads(line.strip()[:-1])
+                except:
+                    pass
+                else:
+                    if entity['type'] != 'item':
+                        continue
+
+                    wid = entity[u'id']
+                    try:
+                        aliases = [e['value'].encode('utf-8') for e in  entity['aliases']['en']]
+                    except KeyError:
+                        continue
+                    else:
+                        # a graphdb element can be indexed only once
+                        # so we need to create a vertex per alias
+                        for alias in aliases:
+                            with graph.transaction():
+                                vertex = Vertex(wid=wid)
+                                graph.index(vertex, alias)
+
+    if args['wikidata'] and args['search']:
+        query = args['QUERY']
+        query = ' '.join(query)
+        for uid, score in graph.like(query):
+            msg = '(score: %s)\thttps://www.wikidata.org/wiki/%s\t%s'
+            vertex = graph.get(uid)
+            wid = vertex['wid']
+            word = vertex['__fuzzy__']
+            print msg % (score, wid, word)
+
     graph.close()
