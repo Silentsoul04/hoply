@@ -22,7 +22,14 @@ Documentation
 Check out the presentation @ `speakerdeck <https://speakerdeck.com/_amirouche_/ajgudb>`_
 
 ChangeLog
-=========
+========
+
+0.9
+===
+
+- implement fuzzy search
+- expose `AjguDB.search`
+- add optional logging and transaction as `AjguDB.transaction()`
 
 0.8.1
 =====
