@@ -4,6 +4,7 @@ from collections import Counter
 from collections import namedtuple
 from contextlib import contextmanager
 from itertools import imap
+from itertools import tee
 from json import dumps
 from json import loads
 
@@ -13,6 +14,16 @@ from wiredtiger import wiredtiger_open
 def pk(*args):
     print args
     return args[-1]
+
+
+def ngrams(iterable, n=2):
+    if n < 1:
+        raise ValueError
+    t = tee(iterable, n)
+    for i, x in enumerate(t):
+        for j in range(i):
+            next(x, None)
+    return zip(*t)
 
 
 def trigrams(string):
@@ -123,7 +134,7 @@ class AjguDB(object):
             raise
         else:
             self._session.commit_transaction()
-        
+
     def debug(self):
         self._tuples.reset()
         while self._tuples.next() != WT_NOT_FOUND:
