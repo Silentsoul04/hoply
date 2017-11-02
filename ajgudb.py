@@ -1,5 +1,5 @@
 # AjuDB - graphdb for exploring your connected data
-# Copyright (C) 2015-2016 Amirouche Boubekki <amirouche@hypermove.net>
+# Copyright (C) 2015-2018 Amirouche Boubekki <amirouche@hypermove.net>
 from collections import Counter
 from collections import namedtuple
 from contextlib import contextmanager
