@@ -212,7 +212,10 @@ class AjguDB(object):
         if self._tuples.search() == 0:
             out = loads(self._tuples.get_value())
         else:
-            out = None  # do not raise an exception or it will be painful
+            # XXX: It's a bad idea to silence the error here.  but I
+            # don't remember what the error means. So, I use a raw
+            # exception.
+            raise AjguDBException("FIXME!", (uid, key))
         self._tuples.reset()
         return out
 
