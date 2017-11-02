@@ -315,7 +315,7 @@ class AjguDB(object):
         if '__fuzzy__' in element:
             msg = 'Element %s is already indexed as %s'
             msg = msg % (element, element['__fuzzy__'])
-            raise RuntimeError(msg)
+            raise AjguDBException(msg)
         else:
             element['__fuzzy__'] = string
             uid = self.save(element).uid
