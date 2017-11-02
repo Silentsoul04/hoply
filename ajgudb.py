@@ -310,20 +310,35 @@ class AjguDB(object):
         else:
             raise NotImplementedError('FIXME')
 
-    def index(self, element, string):
-        """Index element in the fuzzy index"""
+    def fuzzy_index(self, element, this):
+        """Index element in the fuzzy index
+
+        The fuzzy is index is built with the trigrams of `this`.
+
+        See `AjguDB.like`.
+        """
         if '__fuzzy__' in element:
             msg = 'Element %s is already indexed as %s'
             msg = msg % (element, element['__fuzzy__'])
             raise AjguDBException(msg)
         else:
-            element['__fuzzy__'] = string
+            element['__fuzzy__'] = this
             uid = self.save(element).uid
-            for trigram in trigrams(string):
-                self._trigrams.set_value(trigram, uid, string)
+            for trigram in trigrams(this):
+                self._trigrams.set_value(trigram, uid, this)
                 self._trigrams.insert()
 
     def like(self, that, limit=100, alpha=0, beta=-1):
+        """Lookup a vertex or edge that *fuzzy* match the string `that`
+
+        The returned vertex or edge must have been *indexed* using the
+        `AjguDB.index(element, string)` method.
+
+        The lookup is similar as the one done by a spellchecker, it
+        means the actual result might now be exact match. The actual
+        algorithm is 
+
+        """
         # uid to score
         count = Counter()
         # uid to matched string
