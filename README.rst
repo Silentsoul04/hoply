@@ -2,7 +2,7 @@
  AjguDB
 ========
 
-AjguDB wants to be a fast enough python graph database for exploring connected data.
+AjguDB wants to be a python graph database for exploring connected data.
 
 - graphdb
 - networkless
