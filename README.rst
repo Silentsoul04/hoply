@@ -14,7 +14,7 @@ AjguDB wants to be a fast enough python graph database for exploring connected d
 Dependencies
 ============
 
-- `wiredtiger develop branch <https://github.com/wiredtiger/wiredtiger>`_
+- `wiredtiger <https://github.com/wiredtiger/wiredtiger>`_
 
 Documentation
 =============
