@@ -308,20 +308,20 @@ class DatabaseTestCase(TestCase):
         self.assertEqual(out, [2, 3, 4])
 
     def test_like_single_item_in_db(self):
-        self.graph.index(Vertex(), 'abc')
+        self.graph.fuzzy_index(Vertex(), 'abc')
         self.assertEqual(self.graph.like('abc'), [(1, 0)])
 
     def test_like_two_items_in_db(self):
-        self.graph.index(Vertex(), 'abc')
-        self.graph.index(Vertex(), 'def')
+        self.graph.fuzzy_index(Vertex(), 'abc')
+        self.graph.fuzzy_index(Vertex(), 'def')
         self.assertEqual(self.graph.like('abc'), [(1, 0)])
 
     def test_like_abcdef_one(self):
-        self.graph.index(Vertex(), 'abc')
-        self.graph.index(Vertex(), 'def')
+        self.graph.fuzzy_index(Vertex(), 'abc')
+        self.graph.fuzzy_index(Vertex(), 'def')
         self.assertEqual(self.graph.like('abcdef'), [(1, -3), (2, -3)])
 
     def test_like_abcdef_two(self):
-        self.graph.index(Vertex(), 'abcdef')
-        self.graph.index(Vertex(), 'def')
+        self.graph.fuzzy_index(Vertex(), 'abcdef')
+        self.graph.fuzzy_index(Vertex(), 'def')
         self.assertEqual(self.graph.like('abcdef'), [(1, 0), (2, -3)])
