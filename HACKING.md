@@ -1,3 +1,0 @@
-# AjuDB inner working
-
-
