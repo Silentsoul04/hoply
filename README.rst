@@ -8,13 +8,13 @@ AjguDB wants to be a python graph database for exploring connected data.
 - networkless
 - with gremlin querying
 
-- GPLv2 or GPLv3
+- Apache 2
 
 
 Dependencies
 ============
 
-- `wiredtiger <https://github.com/wiredtiger/wiredtiger>`_
+- `plyvel <http://plyvel.readthedocs.io/>`_
 
 Documentation
 =============
@@ -24,15 +24,21 @@ Check out the presentation @ `speakerdeck <https://speakerdeck.com/_amirouche_/a
 ChangeLog
 ========
 
+0.10 (wip)
+----------
+
+- Python 3 support
+- Move to leveldb via plyvel instead of wiredtiger
+
 0.9
-===
+---
 
 - implement fuzzy search
 - expose `AjguDB.search`
 - add optional logging and transaction as `AjguDB.transaction()`
 
 0.8.1
-=====
+-----
 
 - improve documentation
 - fix `scatter` step
