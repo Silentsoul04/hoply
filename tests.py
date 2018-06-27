@@ -3,7 +3,33 @@ import os
 from shutil import rmtree
 from unittest import TestCase
 
-from ajgudb import *
+from ajgudb import AjguDB
+from ajgudb import EDGES
+from ajgudb import Edge
+from ajgudb import FROM
+from ajgudb import VERTICES
+from ajgudb import Vertex
+from ajgudb import back
+from ajgudb import count
+from ajgudb import end
+from ajgudb import get
+from ajgudb import gfilter
+from ajgudb import gmap
+from ajgudb import gremlin
+from ajgudb import incomings
+from ajgudb import key
+from ajgudb import limit
+from ajgudb import mean
+from ajgudb import outgoings
+from ajgudb import path
+from ajgudb import scatter
+from ajgudb import skip
+from ajgudb import sort
+from ajgudb import start
+from ajgudb import trigrams
+from ajgudb import unique
+from ajgudb import value
+from ajgudb import where
 
 
 class TrigramTests(TestCase):
@@ -227,53 +253,53 @@ class DatabaseTestCase(TestCase):
         self.assertEqual(out, [2.0, 3.0])
 
     def test_gremlin_get(self):
-        a = self.graph.save(Vertex())
-        b = self.graph.save(Vertex())
+        self.graph.save(Vertex())
+        self.graph.save(Vertex())
         query = gremlin(VERTICES, get)
         out = map(lambda x: x.uid, query(self.graph))
         self.assertEqual(out, [1, 2])
 
     def test_gremlin_sort(self):
-        a = self.graph.save(Vertex(weight=3.0))
-        b = self.graph.save(Vertex(weight=2.0))
-        c = self.graph.save(Vertex(weight=4.0))
-        d = self.graph.save(Vertex(weight=1.0))
+        self.graph.save(Vertex(weight=3.0))
+        self.graph.save(Vertex(weight=2.0))
+        self.graph.save(Vertex(weight=4.0))
+        self.graph.save(Vertex(weight=1.0))
         query = gremlin(VERTICES, key('weight'), sort(), value)
         out = list(query(self.graph))
         self.assertEqual(out, [1.0, 2.0, 3.0, 4.0])
 
     def test_gremlin_unique(self):
-        a = self.graph.save(Vertex(weight=4.0))
-        b = self.graph.save(Vertex(weight=1.0))
-        c = self.graph.save(Vertex(weight=4.0))
-        d = self.graph.save(Vertex(weight=1.0))
+        self.graph.save(Vertex(weight=4.0))
+        self.graph.save(Vertex(weight=1.0))
+        self.graph.save(Vertex(weight=4.0))
+        self.graph.save(Vertex(weight=1.0))
         query = gremlin(VERTICES, key('weight'), unique, value)
         out = list(query(self.graph))
         self.assertEqual(out, [4.0, 1.0])
 
     def test_gremlin_gfilter(self):
-        a = self.graph.save(Vertex(weight=3.0))
-        b = self.graph.save(Vertex(weight=2.0))
-        c = self.graph.save(Vertex(weight=4.0))
-        d = self.graph.save(Vertex(weight=1.0))
+        self.graph.save(Vertex(weight=3.0))
+        self.graph.save(Vertex(weight=2.0))
+        self.graph.save(Vertex(weight=4.0))
+        self.graph.save(Vertex(weight=1.0))
         query = gremlin(VERTICES, key('weight'), gfilter(lambda g, x: x > 2), value)
         out = list(query(self.graph))
         self.assertEqual(out, [3.0, 4.0])
 
     def test_gremlin_back(self):
         a = self.graph.save(Vertex(weight=3.0))
-        b = self.graph.save(Vertex(weight=2.0))
+        self.graph.save(Vertex(weight=2.0))
         c = self.graph.save(Vertex(weight=4.0))
-        d = self.graph.save(Vertex(weight=1.0))
+        self.graph.save(Vertex(weight=1.0))
         query = gremlin(VERTICES, key('weight'), gfilter(lambda g, x: x > 2), back, value)
         out = list(query(self.graph))
         self.assertEqual(out, [a.uid, c.uid])
 
     def test_gremlin_mean(self):
-        a = self.graph.save(Vertex(weight=3.0))
-        b = self.graph.save(Vertex(weight=2.0))
-        c = self.graph.save(Vertex(weight=4.0))
-        d = self.graph.save(Vertex(weight=1.0))
+        self.graph.save(Vertex(weight=3.0))
+        self.graph.save(Vertex(weight=2.0))
+        self.graph.save(Vertex(weight=4.0))
+        self.graph.save(Vertex(weight=1.0))
         query = gremlin(VERTICES, key('weight'), value, mean)
         out = query(self.graph)
         self.assertEqual(out, 2.5)
