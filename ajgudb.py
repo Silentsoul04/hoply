@@ -34,6 +34,7 @@ def trigrams(string):
         for i in range(len(token)-N+1):
             yield token[i:i+N]
 
+
 def levenshtein(s1, s2):
     # cf. https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Python
     if len(s1) < len(s2):
@@ -47,7 +48,9 @@ def levenshtein(s1, s2):
     for i, c1 in enumerate(s1):
         current_row = [i + 1]
         for j, c2 in enumerate(s2):
-            insertions = previous_row[j + 1] + 1 # j+1 instead of j since previous_row and current_row are one character longer
+            # j+1 instead of j since previous_row and current_row are
+            # one character longer
+            insertions = previous_row[j + 1] + 1
             deletions = current_row[j] + 1       # than s2
             substitutions = previous_row[j] + (c1 != c2)
             current_row.append(min(insertions, deletions, substitutions))
@@ -336,7 +339,7 @@ class AjguDB(object):
 
         The lookup is similar as the one done by a spellchecker, it
         means the actual result might now be exact match. The actual
-        algorithm is 
+        algorithm is
 
         """
         # uid to score
@@ -397,15 +400,18 @@ def gremlin(*steps):
 
     return composed
 
+
 def VERTICES(ajgudb, _):
     """Seed step. Iterator over all vertices"""
     for uid in ajgudb.search('__kind__', VERTEX_KIND):
         yield GremlinResult(uid, None)
 
+
 def EDGES(ajgudb, _):
     """Seed step. Iterator over all vertices"""
     for uid in ajgudb.search('__kind__', EDGE_KIND):
         yield GremlinResult(uid, None)
+
 
 def FROM(**kwargs):
     """Seed step. Iterator over element of class ``klass`` that match
@@ -420,6 +426,7 @@ def FROM(**kwargs):
             yield GremlinResult(uid, None)
 
     return step
+
 
 def where(**kwargs):
     """Keep elements that match the ``kwargs`` specification.
@@ -441,6 +448,7 @@ def where(**kwargs):
 
     return step
 
+
 def skip(count):
     """Skip first ``count`` items"""
     def step(ajgudb, iterator):
@@ -450,6 +458,7 @@ def skip(count):
             if counter > count:
                 yield item
     return step
+
 
 def limit(count):
     """Keep only first ``count`` items"""
@@ -461,6 +470,7 @@ def limit(count):
             if counter == count:
                 break
     return step
+
 
 def paginator(count):
     """paginate..."""
@@ -477,9 +487,11 @@ def paginator(count):
         yield page
     return step
 
+
 def count(ajgudb, iterator):
     """Count the number of items in the iterator"""
     return reduce(lambda x, y: x + 1, iterator, 0)
+
 
 def key(name):
     """Get the value associated with ``key``.
@@ -493,6 +505,7 @@ def key(name):
 
     return step
 
+
 # edges navigation
 
 def incomings(ajgudb, iterator):
@@ -502,7 +515,6 @@ def incomings(ajgudb, iterator):
     for item in iterator:
         out = ajgudb.search('__end__', item.value)
         yield GremlinResult(out, item)
-
 
 
 def outgoings(ajgudb, iterator):
@@ -522,6 +534,7 @@ def start(ajgudb, iterator):
         out = ajgudb._key(item.value, '__start__')
         yield GremlinResult(out, item)
 
+
 def end(ajgudb, iterator):
     """Return the end vertex of edges
 
@@ -530,23 +543,28 @@ def end(ajgudb, iterator):
         out = ajgudb._key(item.value, '__end__')
         yield GremlinResult(out, item)
 
+
 def gmap(func):
     def step(ajgudb, iterator):
         return imap(lambda x: GremlinResult(func(ajgudb, x.value), x), iterator)
     return step
 
+
 def value(ajgudb, iterator):
     "Retrieve the content of the iterator"
     return map(lambda x: x.value, iterator)
 
+
 def get(ajgudb, iterator):
     return imap(lambda x: ajgudb.get(x.value), iterator)
+
 
 def sort(key=lambda g, x: x, reverse=False):
     def step(ajgudb, iterator):
         out = sorted(iterator, key=lambda x: key(ajgudb, x), reverse=reverse)
         return iter(out)
     return step
+
 
 def unique(ajgudb, iterator):
     # from ActiveState (MIT)
@@ -575,6 +593,7 @@ def unique(ajgudb, iterator):
     iterator = __unique(iterator, lambda x: x.value)
     return iterator
 
+
 def gfilter(predicate):
     def step(ajgudb, iterator):
         for item in iterator:
@@ -582,8 +601,10 @@ def gfilter(predicate):
                 yield item
     return step
 
+
 def back(ajgudb, iterator):
     return imap(lambda x: x.parent, iterator)
+
 
 def path(count):
 
@@ -597,6 +618,7 @@ def path(count):
 
     return step
 
+
 def mean(ajgudb, iterator):
     count = 0.
     total = 0.
@@ -605,8 +627,10 @@ def mean(ajgudb, iterator):
         count += 1
     return total / count
 
+
 def group_count(ajgudb, iterator):
     return Counter(map(lambda x: x.value, iterator))
+
 
 def scatter(ajgudb, iterator):
     for item in iterator:
