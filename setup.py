@@ -9,7 +9,7 @@ def read(fname):
 
 setup(
     name='AjguDB',
-    version='0.9',
+    version='0.10.0',
     author='Amirouche Boubekki',
     author_email='amirouche@hypermove.net',
     url='https://github.com/amirouche/ajgudb',
@@ -17,15 +17,15 @@ setup(
     long_description=read('README.rst'),
     py_modules=['ajgudb'],
     zip_safe=False,
-    license='GPLv2 or GPLv3',
+    license='Apache 2',
     install_requires=[
-        'msgpack-python',
+        "plyvel>=1.0",
     ],
     classifiers=[
+        'License :: OSI Approved :: Apache Software License',
         'Intended Audience :: Developers',
         'Operating System :: OS Independent',
         'Topic :: Software Development',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 2.7',
     ],
 )
