@@ -9,7 +9,7 @@ help: ## This help.
 wiredtiger:
 	wget https://github.com/wiredtiger/wiredtiger/releases/download/3.0.0/wiredtiger-3.0.0.tar.bz2
 	tar xf wiredtiger-3.0.0.tar.bz2
-	cd wiredtiger-3.0.0 && ./configure && make && sudo make install
+	cd wiredtiger-3.0.0 && ./configure && make -j2 && sudo make install
 	touch wiredtiger
 
 pyenv:
