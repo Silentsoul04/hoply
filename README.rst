@@ -12,7 +12,7 @@ On ubuntu trusty and beyond do the following:
    make install
    make check
 
-Then you can read with your favorite emacs edtiro ``tests.py`` to get
+Then you can read with your favorite emacs editor ``tests.py`` to get
 to know how to use it!
 
 ChangeLog
