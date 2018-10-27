@@ -1,0 +1,10 @@
+dist: trusty
+sudo: required
+language: python
+cache: pip
+python: 3.6
+install: make install
+script: make check
+after_success:
+  - make check-with-coverage
+  - codecov

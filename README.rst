@@ -1,55 +1,31 @@
-========
- AjguDB
-========
+hoply
+#####
 
-AjguDB wants to be a python graph database for exploring connected data.
+Getting started
+===============
 
-- graphdb
-- networkless
-- with gremlin querying
+On ubuntu trusty and beyond do the following:
 
-- Apache 2
+::
 
+   sudo apt install build-essential python3-pip
+   make install
+   make check
 
-Dependencies
-============
-
-- `plyvel <http://plyvel.readthedocs.io/>`_
-
-Documentation
-=============
-
-Check out the presentation @ `speakerdeck <https://speakerdeck.com/_amirouche_/ajgudb>`_
+Then you can read with your favorite emacs edtiro ``tests.py`` to get
+to know how to use it!
 
 ChangeLog
-========
+=========
 
-0.10 (wip)
-----------
+0.10
+----
 
-- Python 3 support
-- Move to leveldb via plyvel instead of wiredtiger
+- Move to Python 3.6
+- Move to wiredtiger 3.0.0 via wiredtiger-ffi
+- Move to triple store
 
-0.9
----
-
-- implement fuzzy search
-- expose `AjguDB.search`
-- add optional logging and transaction as `AjguDB.transaction()`
-
-0.8.1
------
-
-- improve documentation
-- fix `scatter` step
-- improve test coverage (89%)
-- more experience with conceptnet
-
-0.8
----
-
-- move to tuple space implementation
-- work with wiredtiger develop branch
+Many features were dropped for the time being.
 
 Author
 ======

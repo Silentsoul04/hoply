@@ -1,3 +1,6 @@
+wiredtiger*
+pyenv
+coverage.xml
 *.py[cod]
 *~
 \#*

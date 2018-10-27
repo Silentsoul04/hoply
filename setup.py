@@ -8,24 +8,26 @@ def read(fname):
 
 
 setup(
-    name='AjguDB',
+    name='hoply',
     version='0.10.0',
     author='Amirouche Boubekki',
     author_email='amirouche@hypermove.net',
-    url='https://github.com/amirouche/ajgudb',
-    description='Explore you connected data',
+    url='https://github.com/amirouche/hoply',
+    description='Explore relational data',
     long_description=read('README.rst'),
-    py_modules=['ajgudb'],
+    py_modules=['hoply'],
     zip_safe=False,
-    license='Apache 2',
+    license='GPLv2 or GPLv3',
     install_requires=[
-        "plyvel>=1.0",
+        "wiredtiger-ffi==0.3.1",
+        "immutables==0.6",
+        "daiquiri==1.5.0",
     ],
     classifiers=[
-        'License :: OSI Approved :: Apache Software License',
         'Intended Audience :: Developers',
-        'Operating System :: OS Independent',
         'Topic :: Software Development',
+        'Intended Audience :: Science/Research',
         'Programming Language :: Python :: 3',
+        'Topic :: Scientific/Engineering',
     ],
 )
