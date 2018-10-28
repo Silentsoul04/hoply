@@ -1,9 +1,10 @@
 #!/bin/bash
 set -xe
-mkdir -p $HOME/dependencies/
+mkdir -p $HOME/pypi/
 mkdir -p $HOME/packages/$1
 cd $HOME/packages/$1
 pipenv run pip install $1
-pipenv run pip freeze > $HOME/dependencies/$1.txt
+pipenv run pip freeze > $HOME/pypi/$1.txt
+curl https://pypi.org/pypi/$1/json > $HOME/pypi/$1.json
 rm -rf $HOME/.local/share/virtualenvs/$1-*
 rm -rf $HOME/packages

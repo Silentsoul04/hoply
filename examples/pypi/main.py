@@ -19,7 +19,7 @@ def process(package):
     start = time.time()
     try:
         run(
-            shlex.split("./downdload.sh {}".format(package)),
+            shlex.split("./download.sh {}".format(package)),
             stderr=DEVNULL,
             stdout=DEVNULL,
             timeout=60
