@@ -167,20 +167,39 @@ class var:
         return '<var %r>' % self.name
 
 
+class Triple:
+
+    __slots__ = ('subject', 'predicate', 'object')
+
+    def __init__(self, subject, predicate, object):
+        self.subject = subject
+        self.predicate = predicate
+        self.object = object
+
+    def is_variables(self):
+        return (
+            isinstance(self.subject, var),
+            isinstance(self.predicate, var),
+            isinstance(self.object, var),
+        )
+
+
 def _pattern_bind(pattern, binding):
-    subject, predicate, object = pattern
+    subject = pattern.subject
+    predicate = pattern.predicate
+    object = pattern.object
     if isinstance(subject, var) and binding.get(subject.name) is not None:
         subject = binding[subject.name]
     if isinstance(predicate, var) and binding.get(predicate.name) is not None:
         predicate = binding[predicate.name]
     if isinstance(object, var) and binding.get(object.name) is not None:
         object = binding[object.name]
-    return subject, predicate, object
+    return Triple(subject, predicate, object)
 
 
 def where(subject, predicate, object):
     # TODO: validate pattern
-    pattern = (subject, predicate, object)
+    pattern = Triple(subject, predicate, object)
 
     def step(hoply, iterator):
         # cache
@@ -190,14 +209,14 @@ def where(subject, predicate, object):
         if iterator is None:
             log.debug("where: 'iterator' is 'None'")
             # If the iterator is None then it's a seed step.
-            vars = tuple((isinstance(item, var) for item in pattern))
+            vars = pattern.is_variables()
             # Generate bindings for the pattern.
             if vars == (True, False, False):
                 log.debug("where: only 'subject' is a variable")
 
                 # cache
-                predicatex = dumps(predicate)
-                objectx = dumps(object)
+                predicatex = dumps(pattern.predicate)
+                objectx = dumps(pattern.object)
 
                 # start range prefix search
                 with hoply._pos_cursor() as cursor:
@@ -210,10 +229,12 @@ def where(subject, predicate, object):
                             return
 
                     while True:
-                        matched = cursor.get_key()
-                        if matched[0] == predicatex and matched[1] == objectx:
+                        p, o, s = cursor.get_key()
+                        matched = Triple(s, p, o)
+                        if matched.predicate == predicatex and matched.object == objectx:
                             # yield match
-                            binding = Map().set(subject.name, loads(matched[2]))
+                            subject = loads(matched.subject)
+                            binding = Map().set(pattern.subject.name, subject)
                             yield binding
 
                             if cursor.next() == WT_NOT_FOUND:
@@ -225,7 +246,7 @@ def where(subject, predicate, object):
                 log.debug('where: subject is NOT a variable')
 
                 # cache
-                subjectx = dumps(subject)
+                subjectx = dumps(pattern.subject)
 
                 # start range prefix search
                 with hoply._spo_cursor() as cursor:
@@ -238,12 +259,14 @@ def where(subject, predicate, object):
                             return
 
                     while True:
-                        matched = cursor.get_key()
-                        if matched[0] == subjectx:
+                        matched = Triple(*cursor.get_key())
+                        if matched.subject == subjectx:
                             # yield match
                             binding = Map()
-                            binding = binding.set(predicate.name, matched[1])
-                            binding = binding.set(object.name, matched[2])
+                            predicate = loads(matched.predicate)
+                            binding = binding.set(pattern.predicate.name, predicate)
+                            object = loads(matched.object)
+                            binding = binding.set(pattern.object.name, object)
                             yield binding
 
                             if cursor.next() == WT_NOT_FOUND:
@@ -255,8 +278,8 @@ def where(subject, predicate, object):
                 log.debug('where: object is a variable')
 
                 # cache
-                subjectx = dumps(subject)
-                predicatex = dumps(predicate)
+                subjectx = dumps(pattern.subject)
+                predicatex = dumps(pattern.predicate)
 
                 # start range prefix search
                 with hoply._spo_cursor() as cursor:
@@ -269,10 +292,11 @@ def where(subject, predicate, object):
                             return
 
                     while True:
-                        matched = cursor.get_key()
-                        if matched[0] == subjectx and matched[1] == predicatex:
+                        matched = Triple(*cursor.get_key())
+                        if matched.subject == subjectx and matched.predicate == predicatex:
                             # yield match
-                            binding = Map().set(object.name, loads(matched[2]))
+                            object = loads(matched.object)
+                            binding = Map().set(pattern.object.name, object)
                             yield binding
 
                             if cursor.next() == WT_NOT_FOUND:
@@ -292,15 +316,15 @@ def where(subject, predicate, object):
             for binding in iterator:
                 bound = _pattern_bind(pattern, binding)
                 log.debug("where: bound is %r", bound)
-                vars = tuple((isinstance(item, var) for item in bound))
+                vars = bound.is_variables()
                 if vars == (False, False, False):
                     log.debug('fully bound pattern')
                     # fully bound pattern, check that it really exists
                     with hoply._spo_cursor() as cursor:
                         cursor.set_key(
-                            hoply.dumps(subject),
-                            hoply.dumps(predicate),
-                            hoply.dumps(object),
+                            hoply.dumps(bound.subject),
+                            hoply.dumps(bound.predicate),
+                            hoply.dumps(bound.object),
                         )
                         code = cursor.search()
                         if code == WT_NOT_FOUND:
@@ -312,8 +336,8 @@ def where(subject, predicate, object):
                     log.debug("where: only 'object' is a variable")
 
                     # cache
-                    subjectx = dumps(bound[0])
-                    predicatex = dumps(bound[1])
+                    subjectx = dumps(bound.subject)
+                    predicatex = dumps(bound.predicate)
 
                     # start range prefix search
                     with hoply._spo_cursor() as cursor:
@@ -326,11 +350,11 @@ def where(subject, predicate, object):
                                 return
 
                         while True:
-                            matched = cursor.get_key()
-                            if subjectx == matched[0] and predicatex == matched[1]:
+                            matched = Triple(*cursor.get_key())
+                            if subjectx == matched.subject and predicatex == matched.predicate:
                                 # yield match
-                                new = binding.set(object.name, loads(matched[2]))
-                                print(new)
+                                object = loads(matched.object)
+                                new = binding.set(bound.object.name, object)
                                 yield new
 
                                 if cursor.next() == WT_NOT_FOUND:
@@ -344,8 +368,8 @@ def where(subject, predicate, object):
                     log.debug("where: subject is variable")
 
                     # cache
-                    predicatex = dumps(bound[1])
-                    objectx = dumps(bound[2])
+                    predicatex = dumps(bound.predicate)
+                    objectx = dumps(bound.object)
 
                     # start range prefix search
                     with hoply._pos_cursor() as cursor:
@@ -358,11 +382,12 @@ def where(subject, predicate, object):
                                 return
 
                         while True:
-                            matched = cursor.get_key()
-                            if predicatex == matched[0] and objectx == matched[1]:
+                            p, o, s = cursor.get_key()
+                            matched = Triple(s, p, o)
+                            if predicatex == matched.predicate and objectx == matched.object:
                                 # yield match
-                                value = loads(matched[2])
-                                new = binding.set(subject.name, value)
+                                subject = loads(matched.subject)
+                                new = binding.set(pattern.subject.name, subject)
                                 yield new
 
                                 if cursor.next() == WT_NOT_FOUND:

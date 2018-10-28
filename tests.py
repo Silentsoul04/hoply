@@ -109,8 +109,8 @@ def test_seed_subject_lookup(db):
     out = query(db)
     out = [dict(x) for x in out]
     expected = [
-        {'key': '"keyword"', 'value': '"corporate"'},
-        {'key': '"title"', 'value': '"blog.dolead.com"'}
+        {'key': 'keyword', 'value': 'corporate'},
+        {'key': 'title', 'value': 'blog.dolead.com'}
     ]
     assert out == expected
 
