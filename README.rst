@@ -8,6 +8,7 @@ On ubuntu trusty and beyond do the following:
 
 ::
 
+   git clone https://github.com/amirouche/hoply/
    sudo apt install build-essential python3-pip
    make install
    make check
