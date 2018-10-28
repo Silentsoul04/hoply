@@ -5,6 +5,7 @@
 #
 import logging
 import json
+from contextlib import contextmanager
 from functools import reduce
 from immutables import Map
 from itertools import tee
@@ -91,7 +92,6 @@ class Hoply(object):
         session.create('table:spo', config)
         self._spo = session.open_cursor('table:spo')
         session.create('index:spo:pos', 'columns=(predicate,object,subject)')
-        self._pos = session.open_cursor('index:spo:pos()')
 
         # TODO: global fuzzy search over subject, predicate and object
 
@@ -102,6 +102,22 @@ class Hoply(object):
 
     def __exit__(self, *args, **kwargs):
         self.close()
+
+    @contextmanager
+    def _spo_cursor(self):
+        cursor = self._session.open_cursor('table:spo')
+        try:
+            yield cursor
+        finally:
+            cursor.close()
+
+    @contextmanager
+    def _pos_cursor(self):
+        cursor = self._session.open_cursor('index:spo:pos()')
+        try:
+            yield cursor
+        finally:
+            cursor.close()
 
     def close(self):
         self._wiredtiger.close()
@@ -184,25 +200,26 @@ def where(subject, predicate, object):
                 objectx = dumps(object)
 
                 # start range prefix search
-                hoply._pos.set_key(predicatex, objectx, '')
-                code = hoply._pos.search_near()
-                if code == WT_NOT_FOUND:
-                    return
-                elif code < 0:
-                    if hoply._pos.next() == WT_NOT_FOUND:
+                with hoply._pos_cursor() as cursor:
+                    cursor.set_key(predicatex, objectx, '')
+                    code = cursor.search_near()
+                    if code == WT_NOT_FOUND:
                         return
+                    elif code < 0:
+                        if cursor.next() == WT_NOT_FOUND:
+                            return
 
-                while True:
-                    matched = hoply._pos.get_key()
-                    if matched[0] == predicatex and matched[1] == objectx:
-                        # yield match
-                        binding = Map().set(subject.name, loads(matched[2]))
-                        yield binding
+                    while True:
+                        matched = cursor.get_key()
+                        if matched[0] == predicatex and matched[1] == objectx:
+                            # yield match
+                            binding = Map().set(subject.name, loads(matched[2]))
+                            yield binding
 
-                        if hoply._pos.next() == WT_NOT_FOUND:
-                            return  # end of table
-                    else:
-                        return  # end of range prefix search
+                            if cursor.next() == WT_NOT_FOUND:
+                                return  # end of table
+                        else:
+                            return  # end of range prefix search
 
             elif vars == (False, True, True):
                 log.debug('where: subject is NOT a variable')
@@ -211,27 +228,28 @@ def where(subject, predicate, object):
                 subjectx = dumps(subject)
 
                 # start range prefix search
-                hoply._spo.set_key(subjectx, '', '')
-                code = hoply._spo.search_near()
-                if code == WT_NOT_FOUND:
-                    return
-                elif code < 0:
-                    if hoply._spo.next() == WT_NOT_FOUND:
+                with hoply._spo_cursor() as cursor:
+                    cursor.set_key(subjectx, '', '')
+                    code = cursor.search_near()
+                    if code == WT_NOT_FOUND:
                         return
+                    elif code < 0:
+                        if cursor.next() == WT_NOT_FOUND:
+                            return
 
-                while True:
-                    matched = hoply._spo.get_key()
-                    if matched[0] == subjectx:
-                        # yield match
-                        binding = Map()
-                        binding = binding.set(predicate.name, matched[1])
-                        binding = binding.set(object.name, matched[2])
-                        yield binding
+                    while True:
+                        matched = cursor.get_key()
+                        if matched[0] == subjectx:
+                            # yield match
+                            binding = Map()
+                            binding = binding.set(predicate.name, matched[1])
+                            binding = binding.set(object.name, matched[2])
+                            yield binding
 
-                        if hoply._spo.next() == WT_NOT_FOUND:
-                            return  # end of table
-                    else:
-                        return  # end of range prefix search
+                            if cursor.next() == WT_NOT_FOUND:
+                                return  # end of table
+                        else:
+                            return  # end of range prefix search
 
             elif vars == (False, False, True):
                 log.debug('where: object is a variable')
@@ -241,25 +259,26 @@ def where(subject, predicate, object):
                 predicatex = dumps(predicate)
 
                 # start range prefix search
-                hoply._spo.set_key(subjectx, predicatex, '')
-                code = hoply._spo.search_near()
-                if code == WT_NOT_FOUND:
-                    return
-                elif code < 0:
-                    if hoply._spo.next() == WT_NOT_FOUND:
+                with hoply._spo_cursor() as cursor:
+                    cursor.set_key(subjectx, predicatex, '')
+                    code = cursor.search_near()
+                    if code == WT_NOT_FOUND:
                         return
+                    elif code < 0:
+                        if cursor.next() == WT_NOT_FOUND:
+                            return
 
-                while True:
-                    matched = hoply._spo.get_key()
-                    if matched[0] == subjectx and matched[1] == predicatex:
-                        # yield match
-                        binding = Map().set(object.name, loads(matched[2]))
-                        yield binding
+                    while True:
+                        matched = cursor.get_key()
+                        if matched[0] == subjectx and matched[1] == predicatex:
+                            # yield match
+                            binding = Map().set(object.name, loads(matched[2]))
+                            yield binding
 
-                        if hoply._spo.next() == WT_NOT_FOUND:
-                            return  # end of table
-                    else:
-                        return  # end of range prefix search
+                            if cursor.next() == WT_NOT_FOUND:
+                                return  # end of table
+                        else:
+                            return  # end of range prefix search
 
             else:
                 msg = 'Pattern not supported, '
@@ -277,16 +296,17 @@ def where(subject, predicate, object):
                 if vars == (False, False, False):
                     log.debug('fully bound pattern')
                     # fully bound pattern, check that it really exists
-                    hoply._spo.set_key(
-                        hoply.dumps(subject),
-                        hoply.dumps(predicate),
-                        hoply.dumps(object),
-                    )
-                    code = hoply._pos.search()
-                    if code == WT_NOT_FOUND:
-                        continue
-                    else:
-                        yield binding
+                    with hoply._spo_cursor() as cursor:
+                        cursor.set_key(
+                            hoply.dumps(subject),
+                            hoply.dumps(predicate),
+                            hoply.dumps(object),
+                        )
+                        code = cursor.search()
+                        if code == WT_NOT_FOUND:
+                            continue
+                        else:
+                            yield binding
 
                 elif vars == (False, False, True):
                     log.debug("where: only 'object' is a variable")
@@ -296,29 +316,29 @@ def where(subject, predicate, object):
                     predicatex = dumps(bound[1])
 
                     # start range prefix search
-                    hoply._spo.set_key(subjectx, predicatex, '')
-                    code = pk(hoply._spo.search_near())
-                    if code == WT_NOT_FOUND:
-                        return
-                    elif code < 0:
-                        if hoply._spo.next() == WT_NOT_FOUND:
+                    with hoply._spo_cursor() as cursor:
+                        cursor.set_key(subjectx, predicatex, '')
+                        code = cursor.search_near()
+                        if code == WT_NOT_FOUND:
                             return
+                        elif code < 0:
+                            if cursor.next() == WT_NOT_FOUND:
+                                return
 
-                    while True:
-                        matched = hoply._spo.get_key()
-                        pk('>>>>', matched)
-                        if subjectx == matched[0] and predicatex == matched[1]:
-                            # yield match
-                            new = binding.set(object.name, loads(matched[2]))
-                            print(new)
-                            yield new
+                        while True:
+                            matched = cursor.get_key()
+                            if subjectx == matched[0] and predicatex == matched[1]:
+                                # yield match
+                                new = binding.set(object.name, loads(matched[2]))
+                                print(new)
+                                yield new
 
-                            if hoply._spo.next() == WT_NOT_FOUND:
-                                # end of table, iter to next binding
+                                if cursor.next() == WT_NOT_FOUND:
+                                    # end of table, iter to next binding
+                                    break
+                            else:
+                                # end of range prefix search, iter to next binding
                                 break
-                        else:
-                            # end of range prefix search, iter to next binding
-                            break
 
                 elif vars == (True, False, False):
                     log.debug("where: subject is variable")
@@ -328,28 +348,29 @@ def where(subject, predicate, object):
                     objectx = dumps(bound[2])
 
                     # start range prefix search
-                    hoply._pos.set_key(predicatex, objectx, '')
-                    code = hoply._pos.search_near()
-                    if code == WT_NOT_FOUND:
-                        return
-                    elif code < 0:
-                        if hoply._pos.next() == WT_NOT_FOUND:
+                    with hoply._pos_cursor() as cursor:
+                        cursor.set_key(predicatex, objectx, '')
+                        code = cursor.search_near()
+                        if code == WT_NOT_FOUND:
                             return
+                        elif code < 0:
+                            if cursor.next() == WT_NOT_FOUND:
+                                return
 
-                    while True:
-                        matched = hoply._pos.get_key()
-                        if predicatex == matched[0] and objectx == matched[1]:
-                            # yield match
-                            value = loads(matched[2])
-                            new = binding.set(subject.name, value)
-                            yield new
+                        while True:
+                            matched = cursor.get_key()
+                            if predicatex == matched[0] and objectx == matched[1]:
+                                # yield match
+                                value = loads(matched[2])
+                                new = binding.set(subject.name, value)
+                                yield new
 
-                            if hoply._pos.next() == WT_NOT_FOUND:
-                                # end of table, iter to the next binding
+                                if cursor.next() == WT_NOT_FOUND:
+                                    # end of table, iter to the next binding
+                                    break
+                            else:
+                                # end of range prefix search, iter to the next binding
                                 break
-                        else:
-                            # end of range prefix search, iter to the next binding
-                            break
 
                 else:
                     msg = 'Pattern not supported, '

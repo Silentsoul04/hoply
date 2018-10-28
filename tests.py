@@ -159,6 +159,37 @@ def test_subject_variable(db):
     assert out == ['hoply is awesome', 'hoply triple store']
 
 
+def test_multiple_cursor_use_in_different_steps(db):
+    # prepare
+    hyperdev = 'hyperdev'
+    db.add(hyperdev, 'title', 'hyperdev.fr')
+    db.add(hyperdev, 'keyword', 'scheme')
+    db.add(hyperdev, 'keyword', 'hacker')
+    db.add(hyperdev, 'type', 'blog')
+    post1 = 'post1'
+    db.add(post1, 'blog', hyperdev)
+    db.add(post1, 'title', 'hoply is awesome')
+    db.add(post1, 'keyword', 'database')
+    db.add(post1, 'keyword', 'python')
+    db.add(post1, 'keyword', 'hoply')
+    db.add(post1, 'type', 'post')
+    post2 = 'post2'
+    db.add(post2, 'blog', hyperdev)
+    db.add(post2, 'title', 'diy a triple store')
+    db.add(post2, 'keyword', 'database')
+    db.add(post2, 'keyword', 'python')
+    db.add(post2, 'keyword', 'diy')
+    db.add(post2, 'type', 'post')
+
+    # exec, compute permutations
+    query = h.compose(
+        h.where(h.var('uid1'), 'keyword', 'database'),
+        h.where(h.var('uid2'), 'keyword', 'python'),
+    )
+    out = len(list(query(db)))
+    assert out == 4
+
+
 def test_skip():
     out = list(h.skip(3)(None, range(5)))
     assert out == [3, 4]
