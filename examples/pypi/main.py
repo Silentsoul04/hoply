@@ -35,6 +35,6 @@ def process(package):
 
 with ThreadPoolExecutor(max_workers=10) as e:
     for package in packages:
-        filepath = '/home/none/pypi/' + package + '.json'
+        filepath = '/home/none/pypi/' + package + '.txt'
         if not os.path.exists(filepath):
             e.submit(process, package)
