@@ -18,7 +18,7 @@ print("total packages: {}".format(len(packages)))
 
 def process(package):
     start = datetime.now()
-    print('* {} @ {}'.format(package, start.isoformat()))
+    print('start {} @ {}'.format(package, start.isoformat()))
     try:
         run(
             shlex.split("./download.sh {}".format(package)),
@@ -27,10 +27,10 @@ def process(package):
             timeout=20,
         )
     except Exception:
-        print('** timeout'.format(package))
+        print('timeout {}'.format(package))
     else:
         delta = datetime.now() - start
-        print('** success @ {}'.format(package, delta))
+        print('success {} @ {}'.format(package, delta))
 
 
 with ThreadPoolExecutor(max_workers=10) as e:
