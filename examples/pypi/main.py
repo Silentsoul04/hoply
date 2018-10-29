@@ -1,5 +1,6 @@
-import time
+import os
 import shlex
+from datetime import datetime
 from subprocess import run
 from subprocess import DEVNULL
 try:
@@ -16,21 +17,24 @@ print("total packages: {}".format(len(packages)))
 
 
 def process(package):
-    start = time.time()
+    start = datetime.now()
+    print('* {} @ {}'.format(package, start.isoformat()))
     try:
         run(
             shlex.split("./download.sh {}".format(package)),
             stderr=DEVNULL,
             stdout=DEVNULL,
-            timeout=60
+            timeout=20,
         )
     except Exception:
-        print('timeout: {}'.format(package))
+        print('** timeout'.format(package))
     else:
-        delta = time.time() - start
-        print('success: {} @ {:.2f}'.format(package, delta))
+        delta = datetime.now() - start
+        print('** success @ {}'.format(package, delta))
 
 
 with ThreadPoolExecutor(max_workers=10) as e:
     for package in packages:
-        e.submit(process, package)
+        filepath = '/home/none/pypi/' + package + '.json'
+        if not os.path.exists(filepath):
+            e.submit(process, package)
