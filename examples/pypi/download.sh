@@ -1,5 +1,6 @@
 #!/bin/bash
 set -xe
+rm -rf $HOME/pypi/$1/
 mkdir -p $HOME/pypi/$1/
 cd $HOME/pypi/$1/
 touch start.timestamp
