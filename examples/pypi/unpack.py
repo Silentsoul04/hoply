@@ -17,10 +17,9 @@ def main():
         # output in package-name.json inside directory passed as
         # argument
         name = unpack['name']
-        out = json.dumps(unpack, indent=True, sort_keys=True)
         filepath = directory / (name + '.json')
         with filepath.open('w') as f:
-            f.write(out)
+            json.dump(f, indent=True, sort_keys=True)
 
 
 if __name__ == '__main__':
