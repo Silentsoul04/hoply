@@ -15,16 +15,16 @@ def main():
         # pack dependencies
         with (package / 'dependencies.json').open() as f:
             dependencies = json.load(f)
-        out['dependencies'] = dependencies
+        out['pipenv json-tree'] = dependencies
         # pack metadata
         with (package / 'metadata.json').open() as f:
             metadata = json.load(f)
-        out['metadata'] = metadata
+        out['pypy metadata'] = metadata
         # python version
         with (package / 'Pipfile.lock').open() as f:
             lock = json.load(f)
         python_version = lock['_meta']['requires']['python_version']
-        out['python_version'] = python_version
+        out['python version'] = python_version
         # serialize into json and base64 encode it
         pack = json.dumps(out)
         pack = pack.encode('ascii')
