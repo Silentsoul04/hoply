@@ -10,29 +10,35 @@ from subprocess import DEVNULL
 from concurrent.futures import ThreadPoolExecutor
 
 
-def process(package):
+def process(root, package):
     start = datetime.now()
     print('start {} @ {}'.format(package, start.isoformat()))
     try:
         run(
-            shlex.split("./download.sh {}".format(package)),
+            shlex.split("./download.sh {} {}".format(root, package)),
             stderr=DEVNULL,
             stdout=DEVNULL,
             timeout=60,
         )
     except Exception as exc:
         print('timeout {}'.format(package))
-        filepath = '/home/pypi/pypi/{}/failed.timestamp'.format(package)
-        with Path(filepath).open('w') as f:
+        filepath = root / package / 'failed.timestamp'
+        with filepath.open('w') as f:
             traceback.print_exc(file=f)
     else:
         delta = datetime.now() - start
         print('success {} @ {}'.format(package, delta))
 
 
-with ThreadPoolExecutor(max_workers=6) as e:
-    for package in sys.stdin:
-        package = package.strip()
-        filepath = '/home/none/pypi/{}/end.timestamp'.format(package)
-        if not os.path.exists(filepath):
-            e.submit(process, package)
+def main():
+    root = Path(sys.argv[1]).resolve()
+    with ThreadPoolExecutor(max_workers=6) as e:
+        for package in sys.stdin:
+            package = package.strip()
+            filepath = str(root / package / 'end.timestamp')
+            if not os.path.exists(filepath):
+                e.submit(process, root, package)
+
+
+if __name__ == '__main__':
+    main()
