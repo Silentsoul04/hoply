@@ -21,7 +21,7 @@ def process(root, package):
             timeout=60,
         )
     except Exception as exc:
-        print('timeout {}'.format(package))
+        print('failed {}'.format(package))
         filepath = root / package / 'failed.timestamp'
         with filepath.open('w') as f:
             traceback.print_exc(file=f)
@@ -36,7 +36,9 @@ def main():
         for package in sys.stdin:
             package = package.strip()
             filepath = str(root / package / 'end.timestamp')
-            if not os.path.exists(filepath):
+            if os.path.exists(filepath):
+                print('skip {}'.format(package))
+            else:
                 e.submit(process, root, package)
 
 
