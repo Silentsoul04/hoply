@@ -2,7 +2,9 @@
 import os
 import shlex
 import sys
+import traceback
 from datetime import datetime
+from pathlib import Path
 from subprocess import run
 from subprocess import DEVNULL
 from concurrent.futures import ThreadPoolExecutor
@@ -18,8 +20,11 @@ def process(package):
             stdout=DEVNULL,
             timeout=60,
         )
-    except Exception:
+    except Exception as exc:
         print('timeout {}'.format(package))
+        filepath = '/home/pypi/pypi/{}/failed.timestamp'.format(package)
+        with Path(filepath).open('w') as f:
+            traceback.print_exc(file=f)
     else:
         delta = datetime.now() - start
         print('success {} @ {}'.format(package, delta))
