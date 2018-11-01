@@ -15,7 +15,7 @@ wiredtiger:
 pyenv:
 	git clone https://github.com/pyenv/pyenv.git
 
-install: wiredtiger pyenv ## Prepare the ubuntu host sytem for development
+prepare: wiredtiger pyenv ## Prepare the ubuntu host sytem for development
 	pip3 install pipenv --upgrade
 	PYENV_ROOT=$(PWD)/pyenv PATH=$(PWD)/pyenv/bin:$(HOME)/.local/bin:$(PATH) pipenv install --dev --skip-lock
 	sudo ldconfig
