@@ -129,6 +129,26 @@ class Hoply(object):
 
         self._session = session
 
+    def begin(self):
+        return self._session.transaction_begin()
+
+    def commit(self):
+        return self._session.transaction_commit()
+
+    def rollback(self):
+        return self._session.transaction_rollback()
+
+    @contextmanager
+    def transaction(self):
+        self.begin()
+        try:
+            yield
+        except Exception as exc:
+            self.rollback()
+            raise
+        else:
+            self.commit()
+
     def __enter__(self):
         return self
 
