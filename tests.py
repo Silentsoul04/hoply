@@ -1,10 +1,12 @@
 import logging
 import os
+import uuid
 from shutil import rmtree
 
 import daiquiri
 import pytest
 import hoply as h
+from cffi import FFI
 
 
 TEST_DIRECTORY = "/tmp/hoply-tests/"
@@ -23,11 +25,28 @@ def db():
     yield db
 
     db.close()
-    rmtree(TEST_DIRECTORY)
+    # rmtree(TEST_DIRECTORY)
 
 
 def test_nop(db):
     assert db
+
+
+def test_pack_unpack():
+    expected = (
+        True,
+        False,
+        None,
+        3.1415,
+        1337,
+        uuid.uuid4(),
+        b'42',
+        'hello',
+        0,
+        -1,
+    )
+    out = h.unpack(FFI().from_buffer(h.pack(expected)))
+    assert expected == out
 
 
 def test_simple_single_item_db_subject_lookup(db):
