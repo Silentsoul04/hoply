@@ -4,7 +4,6 @@
 # Copyright (C) 2015-2018  Amirouche Boubekki <amirouche@hypermove.net>
 #
 import logging
-import json
 import struct
 from bisect import bisect_left
 from contextlib import contextmanager
