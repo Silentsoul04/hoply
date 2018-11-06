@@ -370,7 +370,6 @@ open = Hoply
 
 
 def compose(*steps):
-
     """Pipeline builder and executor"""
 
     def composed(hoply, iterator=None):
