@@ -23,7 +23,7 @@ ChangeLog
 ----
 
 - Move to Python 3.6
-- Move to wiredtiger 3.0.0 via wiredtiger-ffi
+- Move to wiredtiger 3.1.0 via wiredtiger-ffi
 - Move to triple store
 
 Many features were dropped for the time being.
