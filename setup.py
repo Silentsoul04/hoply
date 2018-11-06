@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 from setuptools import setup
+from setuptools import find_packages
 
 
 def read(fname):
@@ -9,13 +10,13 @@ def read(fname):
 
 setup(
     name='hoply',
-    version='0.10.2',
+    version='0.11',
     author='Amirouche Boubekki',
     author_email='amirouche@hypermove.net',
     url='https://github.com/amirouche/hoply',
     description='Explore relational data',
     long_description=read('README.rst'),
-    py_modules=['hoply'],
+    packages=find_packages(),
     zip_safe=False,
     license='GPLv2 or GPLv3',
     install_requires=[
