@@ -20,9 +20,9 @@ setup(
     zip_safe=False,
     license='GPLv2 or GPLv3',
     install_requires=[
-        "wiredtiger-ffi==3.1.0.1",
         "immutables==0.6",
         "daiquiri==1.5.0",
+        "sortedcontainers==2.0.5",
     ],
     classifiers=[
         'Intended Audience :: Developers',

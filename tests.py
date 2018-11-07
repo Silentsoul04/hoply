@@ -6,6 +6,11 @@ from shutil import rmtree
 import daiquiri
 import pytest
 import hoply as h
+from hoply.tuple import pack
+from hoply.tuple import unpack
+from hoply.leveldb import LevelDBStore
+from hoply.memory import MemoryStore
+from hoply.wiredtiger import WiredtigerStore
 from cffi import FFI
 
 
@@ -16,20 +21,21 @@ daiquiri.setup(logging.DEBUG, outputs=('stderr',))
 
 
 @pytest.fixture
-def db():
+def path():
     if os.path.exists(TEST_DIRECTORY):
         rmtree(TEST_DIRECTORY)
     os.makedirs(TEST_DIRECTORY)
-    db = h.open(TEST_DIRECTORY)
 
-    yield db
-
-    db.close()
-    # rmtree(TEST_DIRECTORY)
+    return TEST_DIRECTORY
 
 
-def test_nop(db):
-    assert db
+STORES = [MemoryStore, WiredtigerStore, LevelDBStore]
+
+
+@pytest.mark.parametrize("StoreClass", STORES)
+def test_nop(StoreClass, path):
+    with h.open(StoreClass(path)) as db:
+        assert db
 
 
 def test_pack_unpack():
@@ -45,168 +51,185 @@ def test_pack_unpack():
         0,
         -1,
     )
-    out = h.unpack(FFI().from_buffer(h.pack(expected)))
+    out = unpack(FFI().from_buffer(pack(expected)))
     assert expected == out
 
 
-def test_simple_single_item_db_subject_lookup(db):
-    expected = h.uid()
-    db.add(expected, 'title', 'hyperdev.fr')
-    query = h.compose(h.where(h.var('subject'), 'title', 'hyperdev.fr'))
-    out = list(query(db))
-    out = out[0]['subject']
-    assert out == expected
+@pytest.mark.parametrize("StoreClass", STORES)
+def test_simple_single_item_db_subject_lookup(StoreClass, path):
+    with h.open(StoreClass(path)) as db:
+        expected = h.uid()
+        db.add(expected, 'title', 'hyperdev.fr')
+        query = h.compose(h.where(h.var('subject'), 'title', 'hyperdev.fr'))
+        out = list(query(db))
+        out = out[0]['subject']
+        assert out == expected
 
 
-def test_simple_multiple_items_db_subject_lookup(db):
-    expected = h.uid()
-    db.add(expected, 'title', 'hyperdev.fr')
-    db.add(h.uid(), 'title', 'blog.dolead.com')
-    db.add(h.uid(), 'title', 'julien.danjou.info')
-    query = h.compose(h.where(h.var('subject'), 'title', 'hyperdev.fr'))
-    out = list(query(db))
-    out = out[0]['subject']
-    assert out == expected
+@pytest.mark.parametrize("StoreClass", STORES)
+def test_simple_multiple_items_db_subject_lookup(StoreClass, path):
+    with h.open(StoreClass(path)) as db:
+        expected = h.uid()
+        db.add(expected, 'title', 'hyperdev.fr')
+        db.add(h.uid(), 'title', 'blog.dolead.com')
+        db.add(h.uid(), 'title', 'julien.danjou.info')
+        query = h.compose(h.where(h.var('subject'), 'title', 'hyperdev.fr'))
+        out = list(query(db))
+        out = out[0]['subject']
+        assert out == expected
 
 
-def test_complex(db):
-    hyperdev = h.uid()
-    db.add(hyperdev, 'title', 'hyperdev.fr')
-    db.add(hyperdev, 'keyword', 'scheme')
-    db.add(hyperdev, 'keyword', 'hacker')
-    dolead = h.uid()
-    db.add(dolead, 'title', 'blog.dolead.com')
-    db.add(dolead, 'keyword', 'corporate')
-    julien = h.uid()
-    db.add(julien, 'title', 'julien.danjou.info')
-    db.add(julien, 'keyword', 'python')
-    db.add(julien, 'keyword', 'hacker')
-    query = h.compose(
-        h.where(h.var('subject'), 'keyword', 'hacker'),
-        h.where(h.var('subject'), 'title', h.var('blog')),
-    )
-    out = query(db)
-    out = sorted([x['blog'] for x in out])
-    assert out == ['hyperdev.fr', 'julien.danjou.info']
+@pytest.mark.parametrize("StoreClass", STORES)
+def test_complex(StoreClass, path):
+    with h.open(StoreClass(path)) as db:
+        hyperdev = h.uid()
+        db.add(hyperdev, 'title', 'hyperdev.fr')
+        db.add(hyperdev, 'keyword', 'scheme')
+        db.add(hyperdev, 'keyword', 'hacker')
+        dolead = h.uid()
+        db.add(dolead, 'title', 'blog.dolead.com')
+        db.add(dolead, 'keyword', 'corporate')
+        julien = h.uid()
+        db.add(julien, 'title', 'julien.danjou.info')
+        db.add(julien, 'keyword', 'python')
+        db.add(julien, 'keyword', 'hacker')
+        query = h.compose(
+            h.where(h.var('subject'), 'keyword', 'hacker'),
+            h.where(h.var('subject'), 'title', h.var('blog')),
+        )
+        out = query(db)
+        out = sorted([x['blog'] for x in out])
+        assert out == ['hyperdev.fr', 'julien.danjou.info']
 
 
-def test_seed_subject_variable(db):
-    hyperdev = h.uid()
-    db.add(hyperdev, 'title', 'hyperdev.fr')
-    db.add(hyperdev, 'keyword', 'scheme')
-    db.add(hyperdev, 'keyword', 'hacker')
-    dolead = h.uid()
-    db.add(dolead, 'title', 'blog.dolead.com')
-    db.add(dolead, 'keyword', 'corporate')
-    julien = h.uid()
-    db.add(julien, 'title', 'julien.danjou.info')
-    db.add(julien, 'keyword', 'python')
-    db.add(julien, 'keyword', 'hacker')
-    query = h.compose(
-        h.where(h.var('subject'), 'keyword', 'corporate'),
-    )
-    out = query(db)
-    out = list(out)[0]['subject']
-    assert out == dolead
+@pytest.mark.parametrize("StoreClass", STORES)
+def test_seed_subject_variable(StoreClass, path):
+    with h.open(StoreClass(path)) as db:
+        hyperdev = h.uid()
+        db.add(hyperdev, 'title', 'hyperdev.fr')
+        db.add(hyperdev, 'keyword', 'scheme')
+        db.add(hyperdev, 'keyword', 'hacker')
+        dolead = h.uid()
+        db.add(dolead, 'title', 'blog.dolead.com')
+        db.add(dolead, 'keyword', 'corporate')
+        julien = h.uid()
+        db.add(julien, 'title', 'julien.danjou.info')
+        db.add(julien, 'keyword', 'python')
+        db.add(julien, 'keyword', 'hacker')
+        query = h.compose(
+            h.where(h.var('subject'), 'keyword', 'corporate'),
+        )
+        out = query(db)
+        out = list(out)[0]['subject']
+        assert out == dolead
 
 
-def test_seed_subject_lookup(db):
-    hyperdev = h.uid()
-    db.add(hyperdev, 'title', 'hyperdev.fr')
-    db.add(hyperdev, 'keyword', 'scheme')
-    db.add(hyperdev, 'keyword', 'hacker')
-    dolead = h.uid()
-    db.add(dolead, 'title', 'blog.dolead.com')
-    db.add(dolead, 'keyword', 'corporate')
-    julien = h.uid()
-    db.add(julien, 'title', 'julien.danjou.info')
-    db.add(julien, 'keyword', 'python')
-    db.add(julien, 'keyword', 'hacker')
-    query = h.compose(
-        h.where(dolead, h.var('key'), h.var('value')),
-    )
-    out = query(db)
-    out = [dict(x) for x in out]
-    expected = [
-        {'key': 'keyword', 'value': 'corporate'},
-        {'key': 'title', 'value': 'blog.dolead.com'}
-    ]
-    assert out == expected
+@pytest.mark.parametrize("StoreClass", STORES)
+def test_seed_subject_lookup(StoreClass, path):
+    with h.open(StoreClass(path)) as db:
+        hyperdev = h.uid()
+        db.add(hyperdev, 'title', 'hyperdev.fr')
+        db.add(hyperdev, 'keyword', 'scheme')
+        db.add(hyperdev, 'keyword', 'hacker')
+        dolead = h.uid()
+        db.add(dolead, 'title', 'blog.dolead.com')
+        db.add(dolead, 'keyword', 'corporate')
+        julien = h.uid()
+        db.add(julien, 'title', 'julien.danjou.info')
+        db.add(julien, 'keyword', 'python')
+        db.add(julien, 'keyword', 'hacker')
+        query = h.compose(
+            h.where(dolead, h.var('key'), h.var('value')),
+        )
+        # import ipdb; ipdb.set_trace()
+        out = query(db)
+        out = [dict(x) for x in out]
+        expected = [
+            {'key': 'keyword', 'value': 'corporate'},
+            {'key': 'title', 'value': 'blog.dolead.com'}
+        ]
+        assert out == expected
 
 
-def test_seed_object_variable(db):
-    hyperdev = h.uid()
-    db.add(hyperdev, 'title', 'hyperdev.fr')
-    db.add(hyperdev, 'keyword', 'scheme')
-    db.add(hyperdev, 'keyword', 'hacker')
-    dolead = h.uid()
-    db.add(dolead, 'title', 'blog.dolead.com')
-    db.add(dolead, 'keyword', 'corporate')
-    julien = h.uid()
-    db.add(julien, 'title', 'julien.danjou.info')
-    db.add(julien, 'keyword', 'python')
-    db.add(julien, 'keyword', 'hacker')
-    query = h.compose(
-        h.where(hyperdev, 'title', h.var('title')),
-    )
-    out = query(db)
-    out = list(out)[0]['title']
-    assert out == 'hyperdev.fr'
+@pytest.mark.parametrize("StoreClass", STORES)
+def test_seed_object_variable(StoreClass, path):
+    with h.open(StoreClass(path)) as db:
+        hyperdev = h.uid()
+        db.add(hyperdev, 'title', 'hyperdev.fr')
+        db.add(hyperdev, 'keyword', 'scheme')
+        db.add(hyperdev, 'keyword', 'hacker')
+        dolead = h.uid()
+        db.add(dolead, 'title', 'blog.dolead.com')
+        db.add(dolead, 'keyword', 'corporate')
+        julien = h.uid()
+        db.add(julien, 'title', 'julien.danjou.info')
+        db.add(julien, 'keyword', 'python')
+        db.add(julien, 'keyword', 'hacker')
+        query = h.compose(
+            h.where(hyperdev, 'title', h.var('title')),
+        )
+        out = query(db)
+        out = list(out)[0]['title']
+        assert out == 'hyperdev.fr'
 
 
-def test_subject_variable(db):
-    # prepare
-    hyperdev = h.uid()
-    db.add(hyperdev, 'title', 'hyperdev.fr')
-    db.add(hyperdev, 'keyword', 'scheme')
-    db.add(hyperdev, 'keyword', 'hacker')
-    post1 = h.uid()
-    db.add(post1, 'blog', hyperdev)
-    db.add(post1, 'title', 'hoply is awesome')
-    post2 = h.uid()
-    db.add(post2, 'blog', hyperdev)
-    db.add(post2, 'title', 'hoply triple store')
+@pytest.mark.parametrize("StoreClass", STORES)
+def test_subject_variable(StoreClass, path):
+    with h.open(StoreClass(path)) as db:
+        # prepare
+        hyperdev = h.uid()
+        db.add(hyperdev, 'title', 'hyperdev.fr')
+        db.add(hyperdev, 'keyword', 'scheme')
+        db.add(hyperdev, 'keyword', 'hacker')
+        post1 = h.uid()
+        db.add(post1, 'blog', hyperdev)
+        db.add(post1, 'title', 'hoply is awesome')
+        post2 = h.uid()
+        db.add(post2, 'blog', hyperdev)
+        db.add(post2, 'title', 'hoply triple store')
 
-    # exec, fetch all blog title from hyperdev.fr
-    query = h.compose(
-        h.where(h.var('blog'), 'title', 'hyperdev.fr'),
-        h.where(h.var('post'), 'blog', h.var('blog')),
-        h.where(h.var('post'), 'title', h.var('title')),
-    )
-    out = query(db)
-    out = sorted([x['title'] for x in out])
-    assert out == ['hoply is awesome', 'hoply triple store']
+        # exec, fetch all blog title from hyperdev.fr
+        query = h.compose(
+            h.where(h.var('blog'), 'title', 'hyperdev.fr'),
+            h.where(h.var('post'), 'blog', h.var('blog')),
+            h.where(h.var('post'), 'title', h.var('title')),
+        )
+        out = query(db)
+        out = sorted([x['title'] for x in out])
+        assert out == ['hoply is awesome', 'hoply triple store']
 
 
-def test_multiple_cursor_use_in_different_steps(db):
-    # prepare
-    hyperdev = 'hyperdev'
-    db.add(hyperdev, 'title', 'hyperdev.fr')
-    db.add(hyperdev, 'keyword', 'scheme')
-    db.add(hyperdev, 'keyword', 'hacker')
-    db.add(hyperdev, 'type', 'blog')
-    post1 = 'post1'
-    db.add(post1, 'blog', hyperdev)
-    db.add(post1, 'title', 'hoply is awesome')
-    db.add(post1, 'keyword', 'database')
-    db.add(post1, 'keyword', 'python')
-    db.add(post1, 'keyword', 'hoply')
-    db.add(post1, 'type', 'post')
-    post2 = 'post2'
-    db.add(post2, 'blog', hyperdev)
-    db.add(post2, 'title', 'diy a triple store')
-    db.add(post2, 'keyword', 'database')
-    db.add(post2, 'keyword', 'python')
-    db.add(post2, 'keyword', 'diy')
-    db.add(post2, 'type', 'post')
+@pytest.mark.parametrize("StoreClass", STORES)
+def test_multiple_cursor_use_in_different_steps(StoreClass, path):
+    with h.open(StoreClass(path)) as db:
+        # prepare
+        hyperdev = 'hyperdev'
+        db.add(hyperdev, 'title', 'hyperdev.fr')
+        db.add(hyperdev, 'keyword', 'scheme')
+        db.add(hyperdev, 'keyword', 'hacker')
+        db.add(hyperdev, 'type', 'blog')
+        post1 = 'post1'
+        db.add(post1, 'blog', hyperdev)
+        db.add(post1, 'title', 'hoply is awesome')
+        db.add(post1, 'keyword', 'database')
+        db.add(post1, 'keyword', 'python')
+        db.add(post1, 'keyword', 'hoply')
+        db.add(post1, 'type', 'post')
+        post2 = 'post2'
+        db.add(post2, 'blog', hyperdev)
+        db.add(post2, 'title', 'diy a triple store')
+        db.add(post2, 'keyword', 'database')
+        db.add(post2, 'keyword', 'python')
+        db.add(post2, 'keyword', 'diy')
+        db.add(post2, 'type', 'post')
 
-    # exec, compute permutations
-    query = h.compose(
-        h.where(h.var('uid1'), 'keyword', 'database'),
-        h.where(h.var('uid2'), 'keyword', 'python'),
-    )
-    out = len(list(query(db)))
-    assert out == 4
+        # exec, compute permutations
+        query = h.compose(
+            h.where(h.var('uid1'), 'keyword', 'database'),
+            h.where(h.var('uid2'), 'keyword', 'python'),
+        )
+        out = len(list(query(db)))
+        assert out == 4
 
 
 def test_skip():

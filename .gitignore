@@ -1,4 +1,4 @@
-wiredtiger*
+wiredtiger/
 pyenv
 coverage.xml
 *.py[cod]

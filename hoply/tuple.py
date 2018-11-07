@@ -37,7 +37,12 @@ FALSE_CODE = 0x26
 TRUE_CODE = 0x27
 UUID_CODE = 0x30
 
+
 # Reserved: Codes 0x03, 0x04, 0x23, and 0x24 are reserved for historical reasons.
+
+def strinc(key):
+    key = key.rstrip(b"\xff")
+    return key[:-1] + int2byte(ord(key[-1:]) + 1)
 
 
 def _find_terminator(v, pos):
@@ -161,8 +166,10 @@ def pack(t):
 def unpack(key):
     pos = 0
     res = []
-    copy = b''.join((x for x in key))
-    while pos < len(copy):
-        r, pos = _decode(copy, pos)
+    if not isinstance(key, bytes):
+        # it's ffi.buffer
+        key = b''.join((x for x in key))
+    while pos < len(key):
+        r, pos = _decode(key, pos)
         res.append(r)
     return tuple(res)

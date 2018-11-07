@@ -5,141 +5,47 @@
 #
 import logging
 from contextlib import contextmanager
-from functools import reduce
-from immutables import Map
-from itertools import tee
 from uuid import uuid4
 
-from wiredtiger_ffi import Wiredtiger
+from immutables import Map
 
-from hoply.tuple import pack
-from hoply.tuple import unpack
+from hoply.base import HoplyException
 
 
 log = logging.getLogger(__name__)
-
-
-# rest of hoply
-
-def pk(*args):
-    log.critical('%r', args)
-    return args[-1]
 
 
 def uid():
     return uuid4()
 
 
-def ngrams(iterable, n=2):
-    if n < 1:
-        raise ValueError
-    t = tee(iterable, n)
-    for i, x in enumerate(t):
-        for j in range(i):
-            next(x, None)
-    return zip(*t)
+class Hoply:
 
+    def __init__(self, store):
+        self._store = store
 
-def trigrams(string):
-    # cf. http://stackoverflow.com/a/17532044/140837
-    N = 3
-    for word in string.split():
-        token = '$' + word + '$'
-        for i in range(len(token)-N+1):
-            yield token[i:i+N]
+        store.open()
 
+        # transaction
+        self.begin = store.begin
+        self.commit = store.commit
+        self.rollback = store.rollback
 
-def levenshtein(s1, s2):
-    # cf. https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Python
-    if len(s1) < len(s2):
-        return levenshtein(s2, s1)
+        # garbage in, garbage out
+        self.add = store.add
+        self.delete = store.delete
+        self._spo_cursor = store._spo_cursor
+        self._pos_cursor = store._pos_cursor
+        self._prefix = store._prefix
 
-    # len(s1) >= len(s2)
-    if len(s2) == 0:
-        return len(s1)
+        # don't forget to close the store
+        self.close = store.close
 
-    previous_row = range(len(s2) + 1)
-    for i, c1 in enumerate(s1):
-        current_row = [i + 1]
-        for j, c2 in enumerate(s2):
-            # j+1 instead of j since previous_row and current_row are
-            # one character longer
-            insertions = previous_row[j + 1] + 1
-            deletions = current_row[j] + 1       # than s2
-            substitutions = previous_row[j] + (c1 != c2)
-            current_row.append(min(insertions, deletions, substitutions))
-        previous_row = current_row
+    def __enter__(self):
+        return self
 
-    return previous_row[-1]
-
-
-class HoplyException(Exception):
-    pass
-
-
-WT_NOT_FOUND = -31803
-
-
-def _check(value, other):
-    if value == '':
-        # in this case the check is not revelant because,
-        # the value doesn't matter in the prefix search
-        return True
-    return value == other
-
-
-def _cursor_prefix(cursor, a, b):
-    """Return a generator over the range described by the parameters"""
-    prefix = (a, b)
-    cursor.set_key(pack(prefix))
-    code = cursor.search_near()
-    if code == WT_NOT_FOUND:
-        return
-    elif code < 0:
-        if cursor.next() == WT_NOT_FOUND:
-            return
-
-    while True:
-        key = cursor.get_key()
-        out = unpack(key[0])
-        ok = (_check(*x) for x in zip(prefix, out))
-        if all(ok):
-            # yield match
-            yield out
-            if cursor.next() == WT_NOT_FOUND:
-                return  # end of table
-        else:
-            return  # end of range prefix search
-
-
-class Hoply(object):
-
-    def __init__(self, path, logging=False):
-        # init wiredtiger
-        config = 'create,log=(enabled=true)' if logging else 'create'
-        self._wiredtiger = Wiredtiger(path, config)
-        session = self._wiredtiger.open_session()
-
-        # tables with indices
-        config = 'key_format=u,value_format=u,columns=(value,nop)'
-        session.create('table:spo', config)
-        session.create('table:pos', config)
-
-        self._spo = session.open_cursor('table:spo')
-        self._pos = session.open_cursor('table:pos')
-
-        # TODO: global fuzzy search over subject, predicate and object
-
-        self._session = session
-
-    def begin(self):
-        return self._session.transaction_begin()
-
-    def commit(self):
-        return self._session.transaction_commit()
-
-    def rollback(self):
-        return self._session.transaction_rollback()
+    def __exit__(self, *args, **kwargs):
+        self.close()
 
     @contextmanager
     def transaction(self):
@@ -152,114 +58,7 @@ class Hoply(object):
         else:
             self.commit()
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args, **kwargs):
-        self.close()
-
-    @contextmanager
-    def _spo_cursor(self):
-        cursor = self._session.open_cursor('table:spo')
-        try:
-            yield cursor
-        finally:
-            cursor.close()
-
-    @contextmanager
-    def _pos_cursor(self):
-        cursor = self._session.open_cursor('table:pos')
-        try:
-            yield cursor
-        finally:
-            cursor.close()
-
-    def close(self):
-        self._wiredtiger.close()
-
-    def add(self, subject, predicate, object):
-        # insert in spo
-        spo = pack((subject, predicate, object))
-        self._spo.set_key(spo)
-        self._spo.set_value(b'')
-        self._spo.insert()
-        # insert in pos
-        pos = pack((predicate, object, subject))
-        self._pos.set_key(pos)
-        self._pos.set_value(b'')
-        self._pos.insert()
-
-    # def delete(self, subject, predicate, object):
-    #     subject = self.dumps(subject)
-    #     predicate = self.dumps(predicate)
-    #     object = self.dumps(object)
-    #     self._spo.set_key(subject, predicate, object)
-    #     code = self._spo.search()
-    #     if code == WT_NOT_FOUND:
-    #         raise HoplyException('Triple not found')
-    #     self._spo.remove()
-
-
-open = Hoply
-
-
-def compose(*steps):
-    """Pipeline builder and executor"""
-
-    def composed(hoply, iterator=None):
-        for step in steps:
-            log.debug('running step=%r', step)
-            iterator = step(hoply, iterator)
-        return iterator
-
-    return composed
-
-
-class var:
-
-    __slots__ = ('name',)
-
-    def __init__(self, name):
-        self.name = name
-
-    def __repr__(self):
-        return '<var %r>' % self.name
-
-
-class Triple:
-
-    __slots__ = ('subject', 'predicate', 'object')
-
-    def __init__(self, subject, predicate, object):
-        self.subject = subject
-        self.predicate = predicate
-        self.object = object
-
-    def is_variables(self):
-        return (
-            isinstance(self.subject, var),
-            isinstance(self.predicate, var),
-            isinstance(self.object, var),
-        )
-
-    def bind(self, binding):
-        subject = self.subject
-        predicate = self.predicate
-        object = self.object
-        if isinstance(subject, var) and binding.get(subject.name) is not None:
-            subject = binding[subject.name]
-        if isinstance(predicate, var) and binding.get(predicate.name) is not None:
-            predicate = binding[predicate.name]
-        if isinstance(object, var) and binding.get(object.name) is not None:
-            object = binding[object.name]
-        return Triple(subject, predicate, object)
-
-
-def where(subject, predicate, object):
-    # TODO: validate pattern
-    pattern = Triple(subject, predicate, object)
-
-    def step(hoply, iterator):
+    def _where(self, pattern, iterator):
         # cache
         if iterator is None:
             log.debug("where: 'iterator' is 'None'")
@@ -272,8 +71,8 @@ def where(subject, predicate, object):
                 predicatex = pattern.predicate
                 objectx = pattern.object
                 # start range prefix search
-                with hoply._pos_cursor() as cursor:
-                    for _, _, subject in _cursor_prefix(cursor, predicatex, objectx):
+                with self._pos_cursor() as cursor:
+                    for _, _, subject in self._prefix(cursor, predicatex, objectx):
                         # yield binding with subject set to its
                         # variable
                         binding = Map().set(pattern.subject.name, subject)
@@ -284,8 +83,8 @@ def where(subject, predicate, object):
                 # cache
                 subjectx = pattern.subject
                 # start range prefix search
-                with hoply._spo_cursor() as cursor:
-                    for _, predicate, object in _cursor_prefix(cursor, subjectx, ''):
+                with self._spo_cursor() as cursor:
+                    for _, predicate, object in self._prefix(cursor, subjectx, ''):
                         # yield binding where predicate and object are
                         # set to their variables
                         binding = Map()
@@ -299,8 +98,8 @@ def where(subject, predicate, object):
                 subjectx = pattern.subject
                 predicatex = pattern.predicate
                 # start range prefix search
-                with hoply._spo_cursor() as cursor:
-                    for _, _, object in _cursor_prefix(cursor, subjectx, predicatex):
+                with self._spo_cursor() as cursor:
+                    for _, _, object in self._prefix(cursor, subjectx, predicatex):
                         # yield binding where object is set to its
                         # variable
                         binding = Map().set(pattern.object.name, object)
@@ -321,17 +120,7 @@ def where(subject, predicate, object):
                 if vars == (False, False, False):
                     log.debug('fully bound pattern')
                     # fully bound pattern, check that it really exists
-                    with hoply._spo_cursor() as cursor:
-                        key = (
-                            bound.subject,
-                            bound.predicate,
-                            bound.object,
-                        )
-                        cursor.set_key(pack(key))
-                        code = cursor.search()
-                        if code == WT_NOT_FOUND:
-                            continue
-                        else:
+                    with self._spo_cursor() as cursor:
                             yield binding
 
                 elif vars == (False, False, True):
@@ -340,8 +129,8 @@ def where(subject, predicate, object):
                     subjectx = bound.subject
                     predicatex = bound.predicate
                     # start range prefix search
-                    with hoply._spo_cursor() as cursor:
-                        for _, _, object in _cursor_prefix(cursor, subjectx, predicatex):
+                    with self._spo_cursor() as cursor:
+                        for _, _, object in self._prefix(cursor, subjectx, predicatex):
                             new = binding.set(bound.object.name, object)
                             yield new
 
@@ -351,8 +140,8 @@ def where(subject, predicate, object):
                     predicatex = bound.predicate
                     objectx = bound.object
                     # start range prefix search
-                    with hoply._pos_cursor() as cursor:
-                        for _, _, subject in _cursor_prefix(cursor, predicatex, objectx):
+                    with self._pos_cursor() as cursor:
+                        for _, _, subject in self._prefix(cursor, predicatex, objectx):
                             new = binding.set(pattern.subject.name, subject)
                             yield new
                 else:
@@ -362,101 +151,5 @@ def where(subject, predicate, object):
                     msg = msg.format(vars)
                     raise HoplyException(msg)
 
-    return step
 
-
-def skip(count):
-    """Skip first ``count`` items"""
-    def step(hoply, iterator):
-        counter = 0
-        for item in iterator:
-            counter += 1
-            if counter > count:
-                yield item
-    return step
-
-
-def limit(count):
-    """Keep only first ``count`` items"""
-    def step(hoply, iterator):
-        counter = 0
-        for item in iterator:
-            counter += 1
-            yield item
-            if counter == count:
-                break
-    return step
-
-
-def paginator(count):
-    """paginate..."""
-    def step(hoply, iterator):
-        counter = 0
-        page = list()
-        for item in iterator:
-            page.append(item)
-            counter += 1
-            if counter == count:
-                yield page
-                counter = 0
-                page = list()
-        yield page
-    return step
-
-
-def _add1(x, y):
-    # TODO: check if this is better than a lambda
-    return x + 1
-
-
-def count(hoply, iterator):
-    """Count the number of items in the iterator"""
-    return reduce(_add1, iterator, 0)
-
-
-def pick(name):
-    raise NotImplemented
-
-
-def map(func):
-    def step(hoply, iterator):
-        for item in iterator:
-            out = func(hoply, item)
-            yield out
-    return step
-
-
-def unique(hoply, iterator):
-
-    def uniquify(iterable, key=None):
-        seen = set()
-        for item in iterable:
-            if item in seen:
-                continue
-            seen.add(item)
-            yield item
-
-    iterator = uniquify(iterator)
-    return iterator
-
-
-def filter(predicate):
-    raise NotImplemented
-
-
-def mean(hoply, iterator):
-    count = 0.
-    total = 0.
-    for item in iterator:
-        total += item
-        count += 1
-    return total / count
-
-
-def group_count(hoply, iterator):
-    # return Counter(map(lambda x: x.value, iterator))
-    raise NotImplemented
-
-
-def describe(hoply, iterator):
-    raise NotImplemented
+open = Hoply
