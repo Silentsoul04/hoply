@@ -19,7 +19,7 @@ def main():
         name = unpack['name']
         filepath = directory / (name + '.json')
         with filepath.open('w') as f:
-            json.dump(f, indent=True, sort_keys=True)
+            json.dump(unpack, f, indent=True, sort_keys=True)
 
 
 if __name__ == '__main__':
