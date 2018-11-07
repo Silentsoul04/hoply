@@ -19,7 +19,7 @@ def main():
         # pack metadata
         with (package / 'metadata.json').open() as f:
             metadata = json.load(f)
-        out['pypy metadata'] = metadata
+        out['pypi metadata'] = metadata
         # python version
         with (package / 'Pipfile.lock').open() as f:
             lock = json.load(f)
