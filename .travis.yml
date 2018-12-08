@@ -3,8 +3,7 @@ sudo: required
 language: python
 cache: pip
 python: 3.6
-install: make prepare
+install: make dev
 script: make check
 after_success:
-  - make check-with-coverage
   - codecov
