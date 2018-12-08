@@ -10,7 +10,7 @@ On ubuntu trusty and beyond do the following:
 
    git clone https://github.com/amirouche/hoply/
    sudo apt install build-essential python3-pip
-   make prepare
+   make dev
    make check
 
 Then you can read with your favorite emacs editor ``tests.py`` to get
