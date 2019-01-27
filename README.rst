@@ -95,6 +95,11 @@ And ``wiredtiger`` 3.1.0 from sources::
 ChangeLog
 =========
 
+0.12
+----
+
+- Improve ``README.rst``
+
 0.11
 ----
 
