@@ -24,21 +24,21 @@ How to get started
 How to init the database
 ------------------------
 
-::
+.. code-block:: python
 
   db = h.open(MemoryStore())
 
 How to add a triple
 -------------------
 
-::
+.. code-block:: python
 
   db.add('P4X432', 'title', 'hyperdev.fr')
 
 How to add several triples
 --------------------------
 
-::
+.. code-block:: python
 
   db.add('P4X432', 'description', 'my blog')
   db.add('P4X432', 'tagline', 'forward and beyond')
@@ -46,7 +46,7 @@ How to add several triples
 How to create a transaction
 ---------------------------
 
-::
+.. code-block:: python
 
   with db.transaction():
       db.add('P4X432', 'title', 'hyperdev.fr')
@@ -60,7 +60,7 @@ How to create a transaction
 How to query
 ------------
 
-::
+.. code-block:: python
 
   query = h.compose(h.where(h.var('subject'), 'title', 'hyperdev.fr'))
   query = list(query(db))
