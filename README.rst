@@ -4,7 +4,7 @@ hoply
 Getting started
 ===============
 
-On ubuntu trusty and beyond do the following:
+On Ubuntu Trusty and beyond do the following:
 
 ::
 
@@ -18,6 +18,12 @@ to know how to use it!
 
 ChangeLog
 =========
+
+0.11
+----
+
+- Add ``leveldb`` backend
+- Add memory based backend
 
 0.10
 ----
