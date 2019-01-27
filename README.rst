@@ -10,7 +10,7 @@ Getting started
 How to get started
 ------------------
 
-::
+.. code-block:: python
 
    import hoply as h
    from hoply.memory import MemoryStore
