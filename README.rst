@@ -3,24 +3,6 @@ hoply
 
 **Explore bigger than RAM relational data in the comfort of Python**
 
-<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
-**Table of Contents**
-
-- [Getting started](#getting-started)
-    - [How to get started](#how-to-get-started)
-    - [How to init the database](#how-to-init-the-database)
-    - [How to add a triple](#how-to-add-a-triple)
-    - [How to add several triples](#how-to-add-several-triples)
-    - [How to create a transaction](#how-to-create-a-transaction)
-    - [How to query](#how-to-query)
-- [Installation](#installation)
-- [ChangeLog](#changelog)
-    - [0.11](#011)
-    - [0.10](#010)
-- [Author](#author)
-
-<!-- markdown-toc end -->
-
 
 Getting started
 ===============
