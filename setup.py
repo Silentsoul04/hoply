@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name='hoply',
-    version='0.11',
+    version='0.12',
     author='Amirouche Boubekki',
     author_email='amirouche@hypermove.net',
     url='https://github.com/amirouche/hoply',
