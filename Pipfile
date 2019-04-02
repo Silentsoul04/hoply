@@ -5,7 +5,6 @@ name = "pypi"
 
 [packages]
 plyvel = "*"
-wiredtiger-ffi = "*"
 
 [dev-packages]
 bandit = "*"
@@ -19,6 +18,10 @@ ujson = "*"
 ipdb = "*"
 pre-commit = "*"
 black = "*"
+flake8 = "*"
+rope = "*"
+jedi = "*"
+pylama = "*"
 
 [requires]
 python_version = "3.6"

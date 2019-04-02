@@ -1,45 +1,84 @@
-# hoply - python triple store database for exploring bigger than
-# memory relational graph data
+# https://github.com/amirouche/hoply/
 #
-# Copyright (C) 2015-2018  Amirouche Boubekki <amirouche@hypermove.net>
+# Copyright (C) 2015-2019  Amirouche Boubekki <amirouche.boubekki@gmail.com>
 #
+import asyncio
+import functools
+import inspect
 import logging
+import operator
 from contextlib import contextmanager
-from uuid import uuid4
 
 from immutables import Map
+from wiredtiger import wiredtiger_open
 
-from hoply.base import HoplyException
+from hoply.tuple import pack
+from hoply.tuple import unpack
+from hoply.indices import compute_indices
 
 
 log = logging.getLogger(__name__)
 
 
-def uid():
-    return uuid4()
+WT_NOT_FOUND = -31803
 
 
-class Hoply:
+class HoplyBase:
+    pass
 
-    def __init__(self, store):
-        self._store = store
 
-        store.open()
+class HoplyException(Exception):
+    pass
 
-        # transaction
-        self.begin = store.begin
-        self.commit = store.commit
-        self.rollback = store.rollback
 
-        # garbage in, garbage out
-        self.add = store.add
-        self.delete = store.delete
-        self._spo_cursor = store._spo_cursor
-        self._pos_cursor = store._pos_cursor
-        self._prefix = store._prefix
+class NotFound(HoplyException):
+    pass
 
-        # don't forget to close the store
-        self.close = store.close
+
+class Variable:
+
+    __slots__ = ("name",)
+
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return "<var %r>" % self.name
+
+
+var = Variable  # XXX: use only 'var' in where queries please!
+
+
+class Connexion(HoplyBase):
+    """Database connection
+
+    Hold information about the database that is used. In the future
+    this class MIGHT be abstract and implement different backend.
+
+    """
+
+    def __init__(self, path, logging=True):
+        self._path = path
+        self._logging = logging
+
+        # init wiredtiger
+        config = "create,log=(enabled=true)" if self._logging else "create"
+        self._wiredtiger = wiredtiger_open(self._path, config)
+        self._session = self._wiredtiger.open_session()
+
+    def close(self):
+        self._wiredtiger.close()
+
+    # transaction
+
+    def begin(self):
+        return self._session.transaction_begin()
+
+    def commit(self):
+        return self._session.transaction_commit()
+
+    def rollback(self):
+        return self._session.transaction_rollback()
 
     def __enter__(self):
         return self
@@ -47,109 +86,211 @@ class Hoply:
     def __exit__(self, *args, **kwargs):
         self.close()
 
+    def _range(self, cursor, prefix):
+        """Return a generator over the range described by PREFIX"""
+        cursor.set_key(pack(prefix))
+        code = cursor.search_near()
+        if code == WT_NOT_FOUND:
+            return
+        elif code < 0:
+            if cursor.next() == WT_NOT_FOUND:
+                return
+
+        while True:
+            key = cursor.get_key()
+            out = unpack(key)
+            if all(operator.eq(*x) for x in zip(prefix, out)):
+                # yield match
+                yield out
+                if cursor.next() == WT_NOT_FOUND:
+                    return  # end of table
+            else:
+                return  # end of range prefix search
+
+    @contextmanager
+    def _cursor(self, table):
+        cursor = self._session.open_cursor(table)
+        try:
+            yield cursor
+        finally:
+            cursor.close()
+
     @contextmanager
     def transaction(self):
         self.begin()
         try:
             yield
-        except Exception as exc:
+        except Exception:
             self.rollback()
             raise
         else:
             self.commit()
 
-    def _where(self, pattern, iterator):
-        # cache
-        if iterator is None:
-            log.debug("where: 'iterator' is 'None'")
-            # If the iterator is None then it's a seed step.
-            vars = pattern.is_variables()
-            # Generate bindings for the pattern.
-            if vars == (True, False, False):
-                log.debug("where: only 'subject' is a variable")
-                # cache
-                predicatex = pattern.predicate
-                objectx = pattern.object
-                # start range prefix search
-                with self._pos_cursor() as cursor:
-                    for _, _, subject in self._prefix(cursor, predicatex, objectx):
-                        # yield binding with subject set to its
-                        # variable
-                        binding = Map().set(pattern.subject.name, subject)
-                        yield binding
 
-            elif vars == (False, True, True):
-                log.debug('where: subject is NOT a variable')
-                # cache
-                subjectx = pattern.subject
-                # start range prefix search
-                with self._spo_cursor() as cursor:
-                    for _, predicate, object in self._prefix(cursor, subjectx, ''):
-                        # yield binding where predicate and object are
-                        # set to their variables
-                        binding = Map()
-                        binding = binding.set(pattern.predicate.name, predicate)
-                        binding = binding.set(pattern.object.name, object)
-                        yield binding
+def is_permutation_prefix(combination, index):
+    index = "".join(str(x) for x in index)
+    combination = "".join(str(x) for x in combination)
+    out = index.startswith(combination)
+    return out
 
-            elif vars == (False, False, True):
-                log.debug('where: object is a variable')
-                # cache
-                subjectx = pattern.subject
-                predicatex = pattern.predicate
-                # start range prefix search
-                with self._spo_cursor() as cursor:
-                    for _, _, object in self._prefix(cursor, subjectx, predicatex):
-                        # yield binding where object is set to its
-                        # variable
-                        binding = Map().set(pattern.object.name, object)
-                        yield binding
-            else:
-                msg = 'Pattern not supported, '
-                msg += 'create a bug report '
-                msg += 'if you think that pattern should be supported: %r'
-                msg = msg.format(vars)
-                raise HoplyException(msg)
 
+class Hoply(HoplyBase):
+    def __init__(self, cnx, name, items):
+        self.name = name
+        self._cnx = cnx
+        self._items = items
+        self._cursors = dict()
+        self._tables = dict()
+        # create a table for each index.
+        for index in compute_indices(len(items)):
+            table = "table:" + self.name + "-" + "".join(str(x) for x in index)
+            self._cnx._session.create(table, "key_format=u,value_format=u")
+            # cache cursor
+            self._cursors[index] = self._cnx._session.open_cursor(table)
+            self._tables[index] = table
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        self._cnx.close()
+
+    def add(self, *items):
+        assert len(items) == len(self._items)
+        for index, cursor in self._cursors.items():
+            permutation = tuple(items[i] for i in index)
+            cursor.set_key(pack(permutation))
+            cursor.set_value(b"0")
+            cursor.insert()
+
+    def rm(self, *items):
+        assert len(items) == len(self._items)
+        for index, cursor in self._cursors.items():
+            permutation = tuple(items[i] for i in index)
+            cursor.set_key(pack(permutation))
+            cursor.remove()
+
+    def ask(self, *items):
+        assert len(items) == len(self._items)
+        # XXX: that index is always part of the list of indices see
+        # hoply.indices.
+        index = tuple(range(len(self._items)))
+        permutation = tuple(items[i] for i in index)
+        cursor = self._cursors[index]
+        cursor.set_key(pack(permutation))
+        out = cursor.search() != WT_NOT_FOUND
+        cursor.reset()
+        return out
+
+    def FROM(self, *pattern, seed=Map()):  # seed is immutable
+        """Yields bindings that match pattern"""
+        assert len(pattern) == len(self._items)
+        variable = tuple(isinstance(x, Variable) for x in pattern)
+        # find the first index suitable for the query
+        combination = tuple(x for x in range(len(self._items)) if not variable[x])
+        for index, table in self._cursors.items():
+            if is_permutation_prefix(combination, index):
+                break
         else:
-            log.debug("where: 'iterator' is not 'None'")
-            for binding in iterator:
-                bound = pattern.bind(binding)
-                log.debug("where: bound is %r", bound)
-                vars = bound.is_variables()
-                if vars == (False, False, False):
-                    log.debug('fully bound pattern')
-                    # fully bound pattern, check that it really exists
-                    with self._spo_cursor() as cursor:
-                            yield binding
+            raise HoplyException("oops!")
+        # index variable holds the permutation suitable for the query
+        table = self._tables[index]
+        with self._cnx._cursor(table) as cursor:
+            prefix = tuple(x for x in pattern if not isinstance(x, Variable))
+            for items in self._cnx._range(cursor, prefix):
+                # re-order the items
+                items = tuple(items[index.index(i)] for i in range(len(self._items)))
+                bindings = seed
+                for i, item in enumerate(pattern):
+                    if isinstance(item, Variable):
+                        bindings = bindings.set(item.name, items[i])
+                yield bindings
 
-                elif vars == (False, False, True):
-                    log.debug("where: only 'object' is a variable")
-                    # cache
-                    subjectx = bound.subject
-                    predicatex = bound.predicate
-                    # start range prefix search
-                    with self._spo_cursor() as cursor:
-                        for _, _, object in self._prefix(cursor, subjectx, predicatex):
-                            new = binding.set(bound.object.name, object)
-                            yield new
+    def where(self, *pattern):
+        assert len(pattern) == len(self._items)
 
-                elif vars == (True, False, False):
-                    log.debug("where: subject is variable")
-                    # cache
-                    predicatex = bound.predicate
-                    objectx = bound.object
-                    # start range prefix search
-                    with self._pos_cursor() as cursor:
-                        for _, _, subject in self._prefix(cursor, predicatex, objectx):
-                            new = binding.set(pattern.subject.name, subject)
-                            yield new
-                else:
-                    msg = 'Pattern not supported, '
-                    msg += 'create a bug report '
-                    msg += 'if you think that pattern should be supported: {}'
-                    msg = msg.format(vars)
-                    raise HoplyException(msg)
+        def _where(iterator):
+            for bindings in iterator:
+                # bind PATTERN against BINDINGS
+                bound = []
+                for item in pattern:
+                    if isinstance(item, Variable):
+                        try:
+                            value = bindings[item.name]
+                        except KeyError:
+                            bound.append(item)
+                        else:
+                            bound.append(value)
+                    else:
+                        bound.append(item)
+                # hey!
+                yield from self.FROM(*bound, seed=bindings)
+
+        return _where
 
 
 open = Hoply
+
+
+class Transaction(HoplyBase):
+    def __init__(self, hoply):
+        self._hoply = hoply
+        self.where = hoply.where
+        self.FROM = hoply.FROM
+        self.ask = hoply.ask
+        self.rm = hoply.rm
+
+
+def transactional(func):
+    """Run query in a thread
+
+    This will start when appropriate a transaction and run it in a
+    thread.  This can be composed, coroutines decorated with
+    transactional can call other coroutines decorated with
+    transactional.
+
+    Nevertheless, transaction are supposed to stay short because even
+    if they release the Global Interpreter Lock when they enter C
+    land, they will block the main thread when it is in the Python
+    interpreter. Otherwise said, avoid asynchronous io inside
+    transactional functions.
+
+    """
+    # inspired from foundationdb python bindings
+    spec = inspect.getfullargspec(func)
+    try:
+        # XXX: unlike FDB bindings, transaction name can not be changed
+        # XXX: unlike FDB bindings, 'tr' can not be passed as a keyword
+        index = spec.args.index("tr")
+    except ValueError:
+        msg = "the decorator @transactional expect one of the argument to be name 'tr'"
+        raise NameError(msg)
+
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        db_or_tr = args[
+            index
+        ]  # in general, index == 0 or in case of methods index == 1
+        if isinstance(db_or_tr, Transaction):
+            out = await func(*args, **kwargs)
+            return out
+        else:
+            args = list(args)
+            args[index] = tr = Transaction(db_or_tr)
+            loop = asyncio.get_event_loop()
+            tr._hoply._cnx.begin()
+            try:
+                # func is mix of IO and CPU but because wiredtiger
+                # doesn't work in read-write multiprocessing context,
+                # fallback to threads.
+                out = await loop.run_in_executor(
+                    None, functools.partial(func, *args, **kwargs)
+                )
+            except Exception:
+                tr._hoply._cnx.rollback()
+                raise
+            else:
+                tr._hoply._cnx.commit()
+                return out
+
+    return wrapper

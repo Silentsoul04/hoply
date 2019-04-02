@@ -30,8 +30,8 @@ NULL_CODE = 0x00
 BYTES_CODE = 0x01
 STRING_CODE = 0x02
 INT_ZERO_CODE = 0x14
-POS_INT_END = 0x1d
-NEG_INT_START = 0x0b
+POS_INT_END = 0x1D
+NEG_INT_START = 0x0B
 DOUBLE_CODE = 0x21
 FALSE_CODE = 0x26
 TRUE_CODE = 0x27
@@ -39,6 +39,7 @@ UUID_CODE = 0x30
 
 
 # Reserved: Codes 0x03, 0x04, 0x23, and 0x24 are reserved for historical reasons.
+
 
 def strinc(key):
     key = key.rstrip(b"\xff")
@@ -48,10 +49,10 @@ def strinc(key):
 def _find_terminator(v, pos):
     # Finds the start of the next terminator [\x00]![\xff] or the end of v
     while True:
-        pos = v.find(b'\x00', pos)
+        pos = v.find(b"\x00", pos)
         if pos < 0:
             return len(v)
-        if pos + 1 == len(v) or v[pos + 1:pos + 2] != b'\xff':
+        if pos + 1 == len(v) or v[pos + 1 : pos + 2] != b"\xff":
             return pos
         pos += 2
 
@@ -60,9 +61,9 @@ def _find_terminator(v, pos):
 # If decoding and sign bit is 0 (negative), flip all of the bits. Otherwise, just flip sign.
 def _float_adjust(v, encode):
     if encode and v[0] & 0x80 != 0x00:
-        return b''.join((int2byte(x ^ 0xff) for x in v))
+        return b"".join((int2byte(x ^ 0xFF) for x in v))
     elif not encode and v[0] & 0x80 != 0x80:
-        return b''.join((int2byte(x ^ 0xff) for x in v))
+        return b"".join((int2byte(x ^ 0xFF) for x in v))
     else:
         return int2byte(v[0] ^ 0x80) + v[1:]
 
@@ -73,18 +74,22 @@ def _decode(v, pos):
         return None, pos + 1
     elif code == BYTES_CODE:
         end = _find_terminator(v, pos + 1)
-        return v[pos + 1:end].replace(b"\x00\xFF", b"\x00"), end + 1
+        return v[pos + 1 : end].replace(b"\x00\xFF", b"\x00"), end + 1
     elif code == STRING_CODE:
         end = _find_terminator(v, pos + 1)
-        return v[pos + 1:end].replace(b"\x00\xFF", b"\x00").decode("utf-8"), end + 1
+        return v[pos + 1 : end].replace(b"\x00\xFF", b"\x00").decode("utf-8"), end + 1
     elif code >= INT_ZERO_CODE and code < POS_INT_END:
         n = code - 20
         end = pos + 1 + n
-        return struct.unpack(">Q", b'\x00' * (8 - n) + v[pos + 1:end])[0], end
+        return struct.unpack(">Q", b"\x00" * (8 - n) + v[pos + 1 : end])[0], end
     elif code > NEG_INT_START and code < INT_ZERO_CODE:
         n = 20 - code
         end = pos + 1 + n
-        return struct.unpack(">Q", b'\x00' * (8 - n) + v[pos + 1:end])[0] - _size_limits[n], end
+        return (
+            struct.unpack(">Q", b"\x00" * (8 - n) + v[pos + 1 : end])[0]
+            - _size_limits[n],
+            end,
+        )
     elif code == POS_INT_END:  # 0x1d; Positive 9-255 byte integer
         length = v[pos + 1]
         val = 0
@@ -93,16 +98,19 @@ def _decode(v, pos):
             val += v[pos + 2 + i]
         return val, pos + 2 + length
     elif code == NEG_INT_START:  # 0x0b; Negative 9-255 byte integer
-        length = v[pos + 1] ^ 0xff
+        length = v[pos + 1] ^ 0xFF
         val = 0
         for i in range(length):
             val = val << 8
             val += v[pos + 2 + i]
         return val - (1 << (length * 8)) + 1, pos + 2 + length
     elif code == DOUBLE_CODE:
-        return struct.unpack(">d", _float_adjust(v[pos + 1:pos + 9], False))[0], pos + 9
+        return (
+            struct.unpack(">d", _float_adjust(v[pos + 1 : pos + 9], False))[0],
+            pos + 9,
+        )
     elif code == UUID_CODE:
-        return UUID(bytes=v[pos + 1:pos + 17]), pos + 17
+        return UUID(bytes=v[pos + 1 : pos + 17]), pos + 17
     elif code == FALSE_CODE:
         return False, pos + 1
     elif code == TRUE_CODE:
@@ -117,10 +125,19 @@ def _encode(value):
     # sorting need to work too!
     if value is None:
         return int2byte(NULL_CODE)
+    elif isinstance(value, bool):
+        if value:
+            return int2byte(TRUE_CODE)
+        else:
+            return int2byte(FALSE_CODE)
     elif isinstance(value, bytes):
-        return int2byte(BYTES_CODE) + value.replace(b'\x00', b'\x00\xFF') + b'\x00'
+        return int2byte(BYTES_CODE) + value.replace(b"\x00", b"\x00\xFF") + b"\x00"
     elif isinstance(value, str):
-        return int2byte(STRING_CODE) + value.encode('utf-8').replace(b'\x00', b'\x00\xFF') + b'\x00'
+        return (
+            int2byte(STRING_CODE)
+            + value.encode("utf-8").replace(b"\x00", b"\x00\xFF")
+            + b"\x00"
+        )
     elif isinstance(value, int):
         if value == 0:
             return int2byte(INT_ZERO_CODE)
@@ -129,8 +146,8 @@ def _encode(value):
                 length = (value.bit_length() + 7) // 8
                 data = [int2byte(POS_INT_END), int2byte(length)]
                 for i in range(length - 1, -1, -1):
-                    data.append(int2byte((value >> (8 * i)) & 0xff))
-                return b''.join(data)
+                    data.append(int2byte((value >> (8 * i)) & 0xFF))
+                return b"".join(data)
 
             n = bisect_left(_size_limits, value)
             return int2byte(INT_ZERO_CODE + n) + struct.pack(">Q", value)[-n:]
@@ -138,10 +155,10 @@ def _encode(value):
             if -value >= _size_limits[-1]:
                 length = (value.bit_length() + 7) // 8
                 value += (1 << (length * 8)) - 1
-                data = [int2byte(NEG_INT_START), int2byte(length ^ 0xff)]
+                data = [int2byte(NEG_INT_START), int2byte(length ^ 0xFF)]
                 for i in range(length - 1, -1, -1):
-                    data.append(int2byte((value >> (8 * i)) & 0xff))
-                return b''.join(data)
+                    data.append(int2byte((value >> (8 * i)) & 0xFF))
+                return b"".join(data)
 
             n = bisect_left(_size_limits, -value)
             maxv = _size_limits[n]
@@ -150,17 +167,12 @@ def _encode(value):
         return int2byte(DOUBLE_CODE) + _float_adjust(struct.pack(">d", value), True)
     elif isinstance(value, UUID):
         return int2byte(UUID_CODE) + value.bytes
-    elif isinstance(value, bool):
-        if value:
-            return int2byte(TRUE_CODE)
-        else:
-            return int2byte(FALSE_CODE)
     else:
         raise ValueError("Unsupported data type: " + str(type(value)))
 
 
 def pack(t):
-    return b''.join((_encode(x) for x in t))
+    return b"".join((_encode(x) for x in t))
 
 
 def unpack(key):
@@ -168,7 +180,7 @@ def unpack(key):
     res = []
     if not isinstance(key, bytes):
         # it's ffi.buffer
-        key = b''.join((x for x in key))
+        key = b"".join((x for x in key))
     while pos < len(key):
         r, pos = _decode(key, pos)
         res.append(r)

@@ -1,0 +1,6 @@
+[submodule "submodules/wiredtiger"]
+	path = submodules/wiredtiger
+	url = https://github.com/wiredtiger/wiredtiger
+[submodule "submodules/pyenv"]
+	path = submodules/pyenv
+	url = https://github.com/pyenv/pyenv.git

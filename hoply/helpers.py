@@ -2,11 +2,11 @@ import logging
 from itertools import tee
 
 
-log = logging.getLogger('hoply')
+log = logging.getLogger(__name__)
 
 
 def pk(*args):
-    log.critical('%r', args)
+    log.critical("%r", args)
     return args[-1]
 
 
@@ -24,9 +24,9 @@ def trigrams(string):
     # cf. http://stackoverflow.com/a/17532044/140837
     N = 3
     for word in string.split():
-        token = '$' + word + '$'
-        for i in range(len(token)-N+1):
-            yield token[i:i+N]
+        token = "$" + word + "$"
+        for i in range(len(token) - N + 1):
+            yield token[i : i + N]
 
 
 def levenshtein(s1, s2):
@@ -45,17 +45,9 @@ def levenshtein(s1, s2):
             # j+1 instead of j since previous_row and current_row are
             # one character longer
             insertions = previous_row[j + 1] + 1
-            deletions = current_row[j] + 1       # than s2
+            deletions = current_row[j] + 1  # than s2
             substitutions = previous_row[j] + (c1 != c2)
             current_row.append(min(insertions, deletions, substitutions))
         previous_row = current_row
 
     return previous_row[-1]
-
-
-def check(value, other):
-    if value == '':
-        # in this case the check is not revelant because,
-        # the value doesn't matter in the prefix search
-        return True
-    return value == other
