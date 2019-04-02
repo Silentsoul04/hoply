@@ -1,7 +1,7 @@
 hoply
 #####
 
-.. image:: https://raw.githubusercontent.com/amirouche/hoply/develop/hoply.jpg
+.. image:: https://raw.githubusercontent.com/amirouche/hoply/master/hoply.jpg
 
 
 
