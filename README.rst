@@ -20,8 +20,8 @@ Checkout the ``tests.py`` for a glimpse on how to use it.
 ChangeLog
 =========
 
-0.13.0
-------
+0.13.0 (wip)
+------------
 
 - Changed the public interface
 - Implement generic n-tuple store
