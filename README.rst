@@ -28,12 +28,17 @@ Getting started
 ChangeLog
 =========
 
-0.13.0 (wip)
-------------
+0.13.1
+------
+
+- README++
+
+0.13.0
+------
 
 - Changed the public interface
 - Implement generic n-tuple store
-- Only wiredtiger backend (see `submodules/wiredtiger`)
+- wiredtiger and leveldb backend
 
 0.12
 ----
