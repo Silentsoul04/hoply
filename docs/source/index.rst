@@ -50,7 +50,7 @@ with a few records describing the blog:
 
    db.add('blog', 'title', 'Overkill')
    db.add('blog', 'tagline', 'Never invented hereafter')
-   db.add('blog', 'auythor', 'amz3')
+   db.add('blog', 'author', 'amz3')
 
 Now that the blog is setup, let's add a few blog posts:
 
