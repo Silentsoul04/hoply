@@ -9,10 +9,9 @@ WT_NOT_FOUND = -31803
 
 
 class WiredTigerConnexion(HoplyBase):
-    """Database connection
+    """Storage layer connection
 
-    Hold information about the database that is used. In the future
-    this class MIGHT be abstract and implement different backend.
+    WiredTiger specifics.
 
     """
 
@@ -24,6 +23,9 @@ class WiredTigerConnexion(HoplyBase):
         config = "create,log=(enabled=true)" if self._logging else "create"
         self._wiredtiger = wiredtiger_open(self._path, config)
         self._session = self._wiredtiger.open_session()
+
+    def init(self, table):
+        self._cnx._session.create(table, "key_format=u,value_format=u")
 
     def close(self):
         self._wiredtiger.close()
@@ -44,6 +46,18 @@ class WiredTigerConnexion(HoplyBase):
 
     def __exit__(self, *args, **kwargs):
         self.close()
+
+    def make_cursor(self, table):
+        out = self._session.open_cursor(table)
+        return out
+
+    @contextmanager
+    def cursor(self, table):
+        cursor = self.make_cursor(table)
+        try:
+            yield cursor
+        finally:
+            cursor.close()
 
     def add(self, cursor, key):
         cursor.set_key(key)
@@ -78,14 +92,6 @@ class WiredTigerConnexion(HoplyBase):
         for _ in self._range(cursor, key):
             return True
         return False
-
-    @contextmanager
-    def _cursor(self, table):
-        cursor = self._session.open_cursor(table)
-        try:
-            yield cursor
-        finally:
-            cursor.close()
 
     @contextmanager
     def transaction(self):

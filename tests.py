@@ -7,7 +7,7 @@ from uuid import uuid4
 import daiquiri
 import pytest
 import hoply as h
-from hoply.wiredtiger import WiredTigerConnexion
+from hoply.leveldb import LevelDBConnexion as Connexion
 from hoply.tuple import pack
 from hoply.tuple import unpack
 from cffi import FFI
@@ -29,7 +29,7 @@ def path():
 
 
 def TripleStoreDB(path):
-    cnx = WiredTigerConnexion(path)
+    cnx = Connexion(path)
     out = h.open(cnx, "hoply-test", ("subject", "predicate", "object"))
     return out
 

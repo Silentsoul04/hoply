@@ -61,9 +61,9 @@ class Hoply(HoplyBase):
         # create a table for each index.
         for index in compute_indices(len(items)):
             table = "table:" + self.name + "-" + "".join(str(x) for x in index)
-            self._cnx._session.create(table, "key_format=u,value_format=u")
+            self._cnx.init(table)
             # cache cursor
-            self._cursors[index] = self._cnx._session.open_cursor(table)
+            self._cursors[index] = self._cnx.make_cursor(table)
             self._tables[index] = table
 
     def __enter__(self):
@@ -107,7 +107,7 @@ class Hoply(HoplyBase):
             raise HoplyException("oops!")
         # index variable holds the permutation suitable for the query
         table = self._tables[index]
-        with self._cnx._cursor(table) as cursor:
+        with self._cnx.cursor(table) as cursor:
             prefix = tuple(x for x in pattern if not isinstance(x, Variable))
             for key in self._cnx.range(cursor, pack(prefix)):
                 items = unpack(key)
