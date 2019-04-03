@@ -7,7 +7,8 @@ from uuid import uuid4
 import daiquiri
 import pytest
 import hoply as h
-from hoply.leveldb import LevelDBConnexion as Connexion
+from hoply.leveldb import LevelDBConnexion
+from hoply.memory import MemoryConnexion
 from hoply.tuple import pack
 from hoply.tuple import unpack
 from cffi import FFI
@@ -17,26 +18,6 @@ TEST_DIRECTORY = "/tmp/hoply-tests/"
 
 
 daiquiri.setup(logging.DEBUG, outputs=("stderr",))
-
-
-@pytest.fixture
-def path():
-    if os.path.exists(TEST_DIRECTORY):
-        rmtree(TEST_DIRECTORY)
-    os.makedirs(TEST_DIRECTORY)
-
-    return TEST_DIRECTORY
-
-
-def TripleStoreDB(path):
-    cnx = Connexion(path)
-    out = h.open(cnx, "hoply-test", ("subject", "predicate", "object"))
-    return out
-
-
-def test_nop(path):
-    with TripleStoreDB(path) as db:
-        assert db
 
 
 def test_pack_unpack():
@@ -58,8 +39,32 @@ def test_pack_unpack():
     assert expected == out
 
 
-def test_simple_single_item_db_subject_lookup(path):
-    with TripleStoreDB(path) as db:
+STORES = [MemoryConnexion, LevelDBConnexion]
+
+
+@pytest.fixture
+def path():
+    if os.path.exists(TEST_DIRECTORY):
+        rmtree(TEST_DIRECTORY)
+    os.makedirs(TEST_DIRECTORY)
+
+    return TEST_DIRECTORY
+
+
+def TripleStoreDB(cnx):
+    out = h.open(cnx, "hoply-test", ("subject", "predicate", "object"))
+    return out
+
+
+@pytest.mark.parametrize("store_class", STORES)
+def test_nop(store_class, path):
+    with TripleStoreDB(store_class(path)) as db:
+        assert db
+
+
+@pytest.mark.parametrize("store_class", STORES)
+def test_simple_single_item_db_subject_lookup(store_class, path):
+    with TripleStoreDB(store_class(path)) as db:
         expected = uuid4()
         db.add(expected, "title", "hyperdev.fr")
         query = db.FROM(h.var("subject"), "title", "hyperdev.fr")
@@ -68,8 +73,9 @@ def test_simple_single_item_db_subject_lookup(path):
         assert out == expected
 
 
-def test_simple_multiple_items_db_subject_lookup(path):
-    with TripleStoreDB(path) as db:
+@pytest.mark.parametrize("store_class", STORES)
+def test_simple_multiple_items_db_subject_lookup(store_class, path):
+    with TripleStoreDB(store_class(path)) as db:
         expected = uuid4()
         db.add(expected, "title", "hyperdev.fr")
         db.add(uuid4(), "title", "blog.dolead.com")
@@ -80,8 +86,9 @@ def test_simple_multiple_items_db_subject_lookup(path):
         assert out == expected
 
 
-def test_complex(path):
-    with TripleStoreDB(path) as db:
+@pytest.mark.parametrize("store_class", STORES)
+def test_complex(store_class, path):
+    with TripleStoreDB(store_class(path)) as db:
         hyperdev = uuid4()
         db.add(hyperdev, "title", "hyperdev.fr")
         db.add(hyperdev, "keyword", "scheme")
@@ -101,8 +108,9 @@ def test_complex(path):
         assert out == ["hyperdev.fr", "julien.danjou.info"]
 
 
-def test_seed_subject_variable(path):
-    with TripleStoreDB(path) as db:
+@pytest.mark.parametrize("store_class", STORES)
+def test_seed_subject_variable(store_class, path):
+    with TripleStoreDB(store_class(path)) as db:
         hyperdev = uuid4()
         db.add(hyperdev, "title", "hyperdev.fr")
         db.add(hyperdev, "keyword", "scheme")
@@ -119,8 +127,9 @@ def test_seed_subject_variable(path):
         assert out == dolead
 
 
-def test_seed_subject_lookup(path):
-    with TripleStoreDB(path) as db:
+@pytest.mark.parametrize("store_class", STORES)
+def test_seed_subject_lookup(store_class, path):
+    with TripleStoreDB(store_class(path)) as db:
         hyperdev = uuid4()
         db.add(hyperdev, "title", "hyperdev.fr")
         db.add(hyperdev, "keyword", "scheme")
@@ -141,8 +150,9 @@ def test_seed_subject_lookup(path):
         assert out == expected
 
 
-def test_seed_object_variable(path):
-    with TripleStoreDB(path) as db:
+@pytest.mark.parametrize("store_class", STORES)
+def test_seed_object_variable(store_class, path):
+    with TripleStoreDB(store_class(path)) as db:
         hyperdev = uuid4()
         db.add(hyperdev, "title", "hyperdev.fr")
         db.add(hyperdev, "keyword", "scheme")
@@ -159,8 +169,9 @@ def test_seed_object_variable(path):
         assert out == "hyperdev.fr"
 
 
-def test_subject_variable(path):
-    with TripleStoreDB(path) as db:
+@pytest.mark.parametrize("store_class", STORES)
+def test_subject_variable(store_class, path):
+    with TripleStoreDB(store_class(path)) as db:
         # prepare
         hyperdev = uuid4()
         db.add(hyperdev, "title", "hyperdev.fr")
