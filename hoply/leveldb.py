@@ -29,7 +29,6 @@ class LevelDBConnexion(HoplyBase):
     def __exit__(self, *args, **kwargs):
         self.close()
 
-
     def make_cursor(self, table):
         out = self._storage.prefixed_db(table.encode())
         return out
@@ -40,7 +39,7 @@ class LevelDBConnexion(HoplyBase):
         yield cursor
 
     def add(self, cursor, key):
-        cursor.put(key, b'')
+        cursor.put(key, b"")
 
     def rm(self, cursor, key):
         cursor.delete(key)
