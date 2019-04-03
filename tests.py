@@ -74,6 +74,16 @@ def test_simple_single_item_db_subject_lookup(store_class, path):
 
 
 @pytest.mark.parametrize("store_class", STORES)
+def test_ask_rm_and_ask(store_class, path):
+    with TripleStoreDB(store_class(path)) as db:
+        expected = uuid4()
+        db.add(expected, "title", "hyperdev.fr")
+        assert db.ask(expected, "title", "hyperdev.fr")
+        db.rm(expected, "title", "hyperdev.fr")
+        assert not db.ask(expected, "title", "hyperdev.fr")
+
+
+@pytest.mark.parametrize("store_class", STORES)
 def test_simple_multiple_items_db_subject_lookup(store_class, path):
     with TripleStoreDB(store_class(path)) as db:
         expected = uuid4()

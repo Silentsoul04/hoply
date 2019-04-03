@@ -90,8 +90,7 @@ class Hoply(HoplyBase):
         # hoply.indices.
         index = tuple(range(len(self._items)))
         cursor = self._cursors[index]
-        out = self._cnx.search(pack(items))
-        cursor.reset()
+        out = self._cnx.search(cursor, pack(items))
         return out
 
     def FROM(self, *pattern, seed=Map()):  # seed is immutable

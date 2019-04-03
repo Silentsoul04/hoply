@@ -42,7 +42,7 @@ class MemoryConnexion(HoplyBase):
         cursor.add(key)
 
     def rm(self, cursor, key):
-        del cursor[key]
+        cursor.remove(key)
 
     def search(self, cursor, key):
         out = key in cursor
