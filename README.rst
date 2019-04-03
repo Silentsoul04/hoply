@@ -29,6 +29,12 @@ And read the documentation at `docs/source/index.html <https://git.io/fjI1l>`_.
 ChangeLog
 =========
 
+
+0.13.2
+------
+
+- moar doc
+
 0.13.1
 ------
 
