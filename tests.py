@@ -81,7 +81,7 @@ def test_transactional(store_class, path):
 
         @h.transactional
         def query(tr):
-            print('actually querying')
+            print("actually querying")
             out = tr.FROM(h.var("subject"), "title", "hyperdev.fr")
             out = list(out)
             return out
@@ -105,13 +105,13 @@ def test_transactional_composition(store_class, path):
 
         @h.transactional
         def query(tr):
-            com = tr.where(h.var('subject'), 'tagline', h.var('tagline'))
+            com = tr.where(h.var("subject"), "tagline", h.var("tagline"))
             out = com(pose(tr))
             return list(out)
 
         out = query(db)
-        out = out[0]['tagline']
-        assert out == 'forward and beyond'
+        out = out[0]["tagline"]
+        assert out == "forward and beyond"
 
 
 @pytest.mark.parametrize("store_class", STORES)
