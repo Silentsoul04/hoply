@@ -17,6 +17,14 @@ triplestore or a quadstore or whatever.
 
 Checkout the ``tests.py`` for a glimpse on how to use it.
 
+Getting started
+===============
+
+::
+
+   git clone https://github.com/amirouche/hoply/
+
+
 ChangeLog
 =========
 
