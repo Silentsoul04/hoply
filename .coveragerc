@@ -1,2 +1,4 @@
 [run]
 omit = tests.py
+       hoply/helpers.py
+       hoply/indices.py
