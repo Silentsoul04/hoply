@@ -22,6 +22,7 @@ flake8 = "*"
 rope = "*"
 jedi = "*"
 pylama = "*"
+guzzle-sphinx-theme = "*"
 
 [requires]
 python_version = "3.6"
