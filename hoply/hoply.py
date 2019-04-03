@@ -159,16 +159,14 @@ class Transaction(HoplyBase):
 def transactional(func):
     """Run query in a thread
 
-    This will start when appropriate a transaction and run it in a
-    thread.  This can be composed, coroutines decorated with
-    transactional can call other coroutines decorated with
-    transactional.
+    This will start when appropriate a transaction.  This can be
+    composed, functions decorated with transactional can call other
+    coroutines decorated with transactional.
 
     Nevertheless, transaction are supposed to stay short because even
     if they release the Global Interpreter Lock when they enter C
     land, they will block the main thread when it is in the Python
-    interpreter. Otherwise said, avoid asynchronous io inside
-    transactional functions.
+    interpreter.
 
     """
     # inspired from foundationdb python bindings
@@ -182,25 +180,24 @@ def transactional(func):
         raise NameError(msg)
 
     @functools.wraps(func)
-    async def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs):
+
         db_or_tr = args[
             index
         ]  # in general, index == 0 or in case of methods index == 1
         if isinstance(db_or_tr, Transaction):
-            out = await func(*args, **kwargs)
+            out = func(*args, **kwargs)
+            out = out
             return out
         else:
             args = list(args)
             args[index] = tr = Transaction(db_or_tr)
-            loop = asyncio.get_event_loop()
-            tr._hoply._cnx.begin()
+
             try:
                 # func is mix of IO and CPU but because wiredtiger
                 # doesn't work in read-write multiprocessing context,
                 # fallback to threads.
-                out = await loop.run_in_executor(
-                    None, functools.partial(func, *args, **kwargs)
-                )
+                out = func(*args, **kwargs)
             except Exception:
                 tr._hoply._cnx.rollback()
                 raise

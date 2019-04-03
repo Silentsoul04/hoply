@@ -74,6 +74,47 @@ def test_simple_single_item_db_subject_lookup(store_class, path):
 
 
 @pytest.mark.parametrize("store_class", STORES)
+def test_transactional(store_class, path):
+    with TripleStoreDB(store_class(path)) as db:
+        expected = uuid4()
+        db.add(expected, "title", "hyperdev.fr")
+
+        @h.transactional
+        def query(tr):
+            print('actually querying')
+            out = tr.FROM(h.var("subject"), "title", "hyperdev.fr")
+            out = list(out)
+            return out
+
+        out = query(db)
+        out = out[0]["subject"]
+        assert out == expected
+
+
+@pytest.mark.parametrize("store_class", STORES)
+def test_transactional_composition(store_class, path):
+    with TripleStoreDB(store_class(path)) as db:
+        uid = uuid4()
+        db.add(uid, "title", "hyperdev.fr")
+        db.add(uid, "tagline", "forward and beyond")
+
+        @h.transactional
+        def pose(tr):
+            out = tr.FROM(h.var("subject"), "title", "hyperdev.fr")
+            return out
+
+        @h.transactional
+        def query(tr):
+            com = tr.where(h.var('subject'), 'tagline', h.var('tagline'))
+            out = com(pose(tr))
+            return list(out)
+
+        out = query(db)
+        out = out[0]['tagline']
+        assert out == 'forward and beyond'
+
+
+@pytest.mark.parametrize("store_class", STORES)
 def test_ask_rm_and_ask(store_class, path):
     with TripleStoreDB(store_class(path)) as db:
         expected = uuid4()
