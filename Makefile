@@ -20,7 +20,7 @@ dev: # wiredtiger ## Prepare the ubuntu host sytem for development
 check: ## Run tests
 	pipenv run pytest -vvv --cov-config .coveragerc --cov-report html --cov-report xml --cov=hoply tests.py
 	# pipenv check  TODO: uncomment but check travis ci
-	pipenv run bandit --skip=B101 hoply/
+	pipenv run bandit --skip=B101 hoply/ -r
 	@echo "\033[95m\n\nYou may now run 'make lint'.\n\033[0m"
 
 lint: ## Lint the code
