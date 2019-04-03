@@ -278,3 +278,79 @@ def test_unique():
 def test_mean():
     out = h.mean(range(5))
     assert out == 2.0
+
+
+def test_doc():
+    # setup
+    cnx = MemoryConnexion('blog')
+    db = h.Hoply(cnx, 'engine', ('subject', 'predicate', 'object'))
+
+    db.add('blog', 'title', 'Overkill')
+    db.add('blog', 'tagline', 'Never invented hereafter')
+    db.add('blog', 'auythor', 'amz3')
+
+    from uuid import uuid4
+
+    post1 = uuid4()
+    db.add(post1, 'kind', 'post')
+    db.add(post1, 'title', 'Hoply! Hoply! Hoply!')
+    db.add(post1, 'body', 'The frog hops over the lazy virtuose')
+
+    post2 = uuid4()
+    db.add(post2, 'kind', 'post')
+    db.add(post2, 'title', 'How to build a triple store in 500 lines or less')
+    db.add(post2, 'body', 'Start using the right tool for the job. A key-value store is perfect for that matter!')  # noqa
+
+    comment1 = uuid4()
+    db.add(comment1, 'kind', 'comment')
+    db.add(comment1, 'post', post1)
+    db.add(comment1, 'author', 'decent-username')
+    db.add(comment1, 'body', 'Do you plan to implement a FoundationDB backend?')
+
+    comment2 = uuid4()
+    db.add(comment2, 'kind', 'comment')
+    db.add(comment2, 'post', post1)
+    db.add(comment2, 'author', 'energizer')
+    db.add(comment2, 'body', 'What about a redis backend?')
+
+    comment3 = uuid4()
+    db.add(comment3, 'kind', 'comment')
+    db.add(comment3, 'post', post1)
+    db.add(comment3, 'author', 'amz3')
+    db.add(comment3, 'body', '@decent-username yes, definitly!')
+
+    comment4 = uuid4()
+    db.add(comment4, 'kind', 'comment')
+    db.add(comment4, 'post', post1)
+    db.add(comment4, 'author', 'amz3')
+    db.add(comment4, 'body', '@energizer no. It does not make sens to implement that on top REDIS. Also I find REDIS useless nowdays!')  # noqa
+
+    # check
+    title = list(db.FROM('blog', 'title', h.var('title')))[0]['title']
+    assert title == 'Overkill'
+
+    # check
+    config = dict(list(h.compose(
+        db.FROM('blog', 'title', h.var('title')),
+        db.where('blog', 'tagline', h.var('tagline')),
+    ))[0])
+    assert config == {'tagline': 'Never invented hereafter', 'title': 'Overkill'}
+
+    def get_comments(post_uid):
+        comments = list(h.compose(
+            db.FROM(h.var('uid'), 'kind', 'comment'),
+            db.where(h.var('uid'), 'post', post_uid),
+            db.where(h.var('uid'), 'body', h.var('body')),
+            h.pick('body')
+        ))
+        return comments
+
+    # check
+    expected = [
+        '@energizer no. It does not make sens to implement that on top REDIS. Also I find REDIS useless nowdays!',  # noqa
+        'What about a redis backend?',
+        'Do you plan to implement a FoundationDB backend?',
+        '@decent-username yes, definitly!'
+    ]
+    assert sorted(get_comments(post1)) == sorted(expected)
+    assert get_comments(post2) == []

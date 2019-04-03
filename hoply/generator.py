@@ -68,8 +68,9 @@ def count(iterator):
 
 
 def pick(name):
-    def wrapped(bindings):
-        return bindings.get(name)
+    def wrapped(iterator):
+        for bindings in iterator:
+            yield bindings.get(name)
 
     return wrapped
 
