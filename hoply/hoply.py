@@ -7,10 +7,8 @@ import functools
 import inspect
 import logging
 import operator
-from contextlib import contextmanager
 
 from immutables import Map
-from wiredtiger import wiredtiger_open
 
 from hoply.tuple import pack
 from hoply.tuple import unpack
@@ -18,9 +16,6 @@ from hoply.indices import compute_indices
 
 
 log = logging.getLogger(__name__)
-
-
-WT_NOT_FOUND = -31803
 
 
 class HoplyBase:
@@ -47,84 +42,6 @@ class Variable:
 
 
 var = Variable  # XXX: use only 'var' in where queries please!
-
-
-class Connexion(HoplyBase):
-    """Database connection
-
-    Hold information about the database that is used. In the future
-    this class MIGHT be abstract and implement different backend.
-
-    """
-
-    def __init__(self, path, logging=True):
-        self._path = path
-        self._logging = logging
-
-        # init wiredtiger
-        config = "create,log=(enabled=true)" if self._logging else "create"
-        self._wiredtiger = wiredtiger_open(self._path, config)
-        self._session = self._wiredtiger.open_session()
-
-    def close(self):
-        self._wiredtiger.close()
-
-    # transaction
-
-    def begin(self):
-        return self._session.transaction_begin()
-
-    def commit(self):
-        return self._session.transaction_commit()
-
-    def rollback(self):
-        return self._session.transaction_rollback()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args, **kwargs):
-        self.close()
-
-    def _range(self, cursor, prefix):
-        """Return a generator over the range described by PREFIX"""
-        cursor.set_key(pack(prefix))
-        code = cursor.search_near()
-        if code == WT_NOT_FOUND:
-            return
-        elif code < 0:
-            if cursor.next() == WT_NOT_FOUND:
-                return
-
-        while True:
-            key = cursor.get_key()
-            out = unpack(key)
-            if all(operator.eq(*x) for x in zip(prefix, out)):
-                # yield match
-                yield out
-                if cursor.next() == WT_NOT_FOUND:
-                    return  # end of table
-            else:
-                return  # end of range prefix search
-
-    @contextmanager
-    def _cursor(self, table):
-        cursor = self._session.open_cursor(table)
-        try:
-            yield cursor
-        finally:
-            cursor.close()
-
-    @contextmanager
-    def transaction(self):
-        self.begin()
-        try:
-            yield
-        except Exception:
-            self.rollback()
-            raise
-        else:
-            self.commit()
 
 
 def is_permutation_prefix(combination, index):
@@ -159,26 +76,21 @@ class Hoply(HoplyBase):
         assert len(items) == len(self._items)
         for index, cursor in self._cursors.items():
             permutation = tuple(items[i] for i in index)
-            cursor.set_key(pack(permutation))
-            cursor.set_value(b"0")
-            cursor.insert()
+            self._cnx.add(cursor, pack(permutation))
 
     def rm(self, *items):
         assert len(items) == len(self._items)
         for index, cursor in self._cursors.items():
             permutation = tuple(items[i] for i in index)
-            cursor.set_key(pack(permutation))
-            cursor.remove()
+            self._cnx.rm(cursor, pack(permutation))
 
     def ask(self, *items):
         assert len(items) == len(self._items)
         # XXX: that index is always part of the list of indices see
         # hoply.indices.
         index = tuple(range(len(self._items)))
-        permutation = tuple(items[i] for i in index)
         cursor = self._cursors[index]
-        cursor.set_key(pack(permutation))
-        out = cursor.search() != WT_NOT_FOUND
+        out = self._cnx.search(pack(items))
         cursor.reset()
         return out
 
@@ -197,7 +109,8 @@ class Hoply(HoplyBase):
         table = self._tables[index]
         with self._cnx._cursor(table) as cursor:
             prefix = tuple(x for x in pattern if not isinstance(x, Variable))
-            for items in self._cnx._range(cursor, prefix):
+            for key in self._cnx.range(cursor, pack(prefix)):
+                items = unpack(key)
                 # re-order the items
                 items = tuple(items[index.index(i)] for i in range(len(self._items)))
                 bindings = seed
@@ -214,14 +127,17 @@ class Hoply(HoplyBase):
                 # bind PATTERN against BINDINGS
                 bound = []
                 for item in pattern:
+                    # if item is variable try to bind
                     if isinstance(item, Variable):
                         try:
                             value = bindings[item.name]
                         except KeyError:
                             bound.append(item)
                         else:
+                            # pick the value in bindings
                             bound.append(value)
                     else:
+                        # otherwise keep item as is
                         bound.append(item)
                 # hey!
                 yield from self.FROM(*bound, seed=bindings)
