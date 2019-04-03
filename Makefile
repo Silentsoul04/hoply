@@ -11,7 +11,7 @@ submodules/wiredtiger/.libs/libwiredtiger.so:
 
 wiredtiger: submodules/wiredtiger/.libs/libwiredtiger.so
 
-dev: wiredtiger ## Prepare the ubuntu host sytem for development
+dev: # wiredtiger ## Prepare the ubuntu host sytem for development
 	pip3 install pipenv --user --upgrade || pip3 install pipenv --upgrade
 	PYENV_ROOT=$(PWD)/submodules/pyenv PATH=$(PWD)/submodules/pyenv/bin:$(HOME)/.local/bin:$(PATH) pipenv install --dev --skip-lock
 	pipenv run python setup.py develop
