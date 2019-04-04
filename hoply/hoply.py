@@ -1,6 +1,7 @@
-# https://github.com/amirouche/hoply/
 #
 # Copyright (C) 2015-2019  Amirouche Boubekki <amirouche.boubekki@gmail.com>
+#
+# https://github.com/amirouche/hoply/
 #
 import asyncio
 import functools
