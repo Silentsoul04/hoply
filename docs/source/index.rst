@@ -136,7 +136,7 @@ This will return:
     ]
     assert sorted(get_comments(post1)) == sorted(expected)
 
-That is all folks!
+That's all folks!
 
 ..
    Indices and tables
