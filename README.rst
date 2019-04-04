@@ -34,6 +34,8 @@ ChangeLog
 ------
 
 - moar doc
+- add memory backend
+- add leveldb backend
 
 0.13.1
 ------
