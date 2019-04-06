@@ -56,6 +56,11 @@ def TripleStoreDB(cnx):
     return out
 
 
+def QuadStore(cnx):
+    out = h.open(cnx, "hoply-test", ("collection", "identifer", "key", "value"))
+    return out
+
+
 @pytest.mark.parametrize("store_class", STORES)
 def test_nop(store_class, path):
     with TripleStoreDB(store_class(path)) as db:
@@ -368,3 +373,14 @@ def test_doc():
     ]
     assert sorted(get_comments(post1)) == sorted(expected)
     assert get_comments(post2) == []
+
+
+@pytest.mark.parametrize("store_class", STORES)
+def test_quads(store_class, path):
+    with QuadStore(store_class(path)) as db:
+        db.add('collection', 'identifier', 'key', 0)
+        db.add('collection', 'identifier', 'key', 1)
+        db.add('collection', 'identifier', 'key', 2)
+        db.add('collection', 'identifier', 'key', 3)
+        out = [x['value'] for x in db.FROM('collection', h.var('identifier'), 'key', h.var('value'))]  # noqa
+        assert list(out) == [0, 1, 2, 3]
