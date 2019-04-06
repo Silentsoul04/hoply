@@ -29,6 +29,15 @@ And read the documentation at `docs/source/index.html <https://git.io/fjI1l>`_.
 ChangeLog
 =========
 
+0.13.4
+------
+
+- fix bug in prefix construction during querying affecting all queries
+
+0.13.3
+------
+
+- fix bug in ``is_permutation_prefix`` and add ``Transaction.add``
 
 0.13.2
 ------
