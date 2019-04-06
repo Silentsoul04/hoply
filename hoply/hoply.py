@@ -3,11 +3,10 @@
 #
 # https://github.com/amirouche/hoply/
 #
-import asyncio
 import functools
 import inspect
 import logging
-import operator
+from itertools import permutations
 
 from immutables import Map
 
@@ -45,10 +44,13 @@ class Variable:
 var = Variable  # XXX: use only 'var' in where queries please!
 
 
+def stringify(list):
+    return "".join(str(x) for x in list)
+
+
 def is_permutation_prefix(combination, index):
-    index = "".join(str(x) for x in index)
-    combination = "".join(str(x) for x in combination)
-    out = index.startswith(combination)
+    index = stringify(index)
+    out = any(index.startswith(stringify(x)) for x in permutations(combination))
     return out
 
 
@@ -74,19 +76,19 @@ class Hoply(HoplyBase):
         self._cnx.close()
 
     def add(self, *items):
-        assert len(items) == len(self._items)
+        assert len(items) == len(self._items), "invalid item count"
         for index, cursor in self._cursors.items():
             permutation = tuple(items[i] for i in index)
             self._cnx.add(cursor, pack(permutation))
 
     def rm(self, *items):
-        assert len(items) == len(self._items)
+        assert len(items) == len(self._items), "invalid item count"
         for index, cursor in self._cursors.items():
             permutation = tuple(items[i] for i in index)
             self._cnx.rm(cursor, pack(permutation))
 
     def ask(self, *items):
-        assert len(items) == len(self._items)
+        assert len(items) == len(self._items), "invalid item count"
         # XXX: that index is always part of the list of indices see
         # hoply.indices.
         index = tuple(range(len(self._items)))
@@ -96,7 +98,7 @@ class Hoply(HoplyBase):
 
     def FROM(self, *pattern, seed=Map()):  # seed is immutable
         """Yields bindings that match pattern"""
-        assert len(pattern) == len(self._items)
+        assert len(pattern) == len(self._items), "invalid item count"
         variable = tuple(isinstance(x, Variable) for x in pattern)
         # find the first index suitable for the query
         combination = tuple(x for x in range(len(self._items)) if not variable[x])
@@ -120,7 +122,7 @@ class Hoply(HoplyBase):
                 yield bindings
 
     def where(self, *pattern):
-        assert len(pattern) == len(self._items)
+        assert len(pattern) == len(self._items), "invalid item count"
 
         def _where(iterator):
             for bindings in iterator:
@@ -154,6 +156,7 @@ class Transaction(HoplyBase):
         self.where = hoply.where
         self.FROM = hoply.FROM
         self.ask = hoply.ask
+        self.add = hoply.add
         self.rm = hoply.rm
 
 
