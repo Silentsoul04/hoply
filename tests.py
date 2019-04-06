@@ -378,9 +378,12 @@ def test_doc():
 @pytest.mark.parametrize("store_class", STORES)
 def test_quads(store_class, path):
     with QuadStore(store_class(path)) as db:
-        db.add('collection', 'identifier', 'key', 0)
-        db.add('collection', 'identifier', 'key', 1)
-        db.add('collection', 'identifier', 'key', 2)
-        db.add('collection', 'identifier', 'key', 3)
-        out = [x['value'] for x in db.FROM('collection', h.var('identifier'), 'key', h.var('value'))]  # noqa
+        db.add("collection", "identifier", "key", 0)
+        db.add("collection", "identifier", "key", 1)
+        db.add("collection", "identifier", "key", 2)
+        db.add("collection", "identifier", "key", 3)
+        out = [
+            x["value"]
+            for x in db.FROM("collection", h.var("identifier"), "key", h.var("value"))
+        ]  # noqa
         assert list(out) == [0, 1, 2, 3]

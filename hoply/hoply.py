@@ -110,7 +110,9 @@ class Hoply(HoplyBase):
         # index variable holds the permutation suitable for the query
         table = self._tables[index]
         with self._cnx.cursor(table) as cursor:
-            prefix = tuple(pattern[i] for i in index if not isinstance(pattern[i], Variable))
+            prefix = tuple(
+                pattern[i] for i in index if not isinstance(pattern[i], Variable)
+            )
             for key in self._cnx.range(cursor, pack(prefix)):
                 items = unpack(key)
                 # re-order the items
