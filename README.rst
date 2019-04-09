@@ -58,24 +58,6 @@ ChangeLog
 - Implement generic n-tuple store
 - wiredtiger and leveldb backend
 
-0.12
-----
-
-- Improve ``README.rst``
-
-0.11
-----
-
-- Add ``leveldb`` backend
-- Add memory based backend
-
-0.10
-----
-
-- Move to Python 3.6
-- Move to wiredtiger git branch ``wt-3929-python3``
-- Move to triple store
-
 Author
 ======
 
