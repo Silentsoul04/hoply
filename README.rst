@@ -56,7 +56,7 @@ ChangeLog
 
 - Changed the public interface
 - Implement generic n-tuple store
-- wiredtiger and leveldb backend
+- wiredtiger backend
 
 Author
 ======
