@@ -136,6 +136,7 @@ class Hoply(HoplyBase):
                         try:
                             value = bindings[item.name]
                         except KeyError:
+                            # no bindings
                             bound.append(item)
                         else:
                             # pick the value in bindings
