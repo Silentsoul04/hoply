@@ -41,7 +41,7 @@ class Variable:
         return "<var %r>" % self.name
 
 
-var = Variable  # XXX: use only 'var' in where queries please!
+var = Variable  # XXX: use only 'var' in 'where' queries please!
 
 
 def stringify(list):
