@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 plyvel = "*"
+foundationdb = {file = "https://www.foundationdb.org/downloads/6.0.18/bindings/python/foundationdb-6.0.18.tar.gz"}
 
 [dev-packages]
 bandit = "*"

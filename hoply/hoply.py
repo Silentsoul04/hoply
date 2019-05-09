@@ -10,8 +10,8 @@ from itertools import permutations
 
 from immutables import Map
 
-from hoply.tuple import pack
-from hoply.tuple import unpack
+from fdb.tuple import pack
+from fdb.tuple import unpack
 from hoply.indices import compute_indices
 
 
