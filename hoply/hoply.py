@@ -131,7 +131,7 @@ class Hoply(HoplyBase):
                 # bind PATTERN against BINDINGS
                 bound = []
                 for item in pattern:
-                    # if item is variable try to bind
+                    # if ITEM is variable try to bind
                     if isinstance(item, Variable):
                         try:
                             value = bindings[item.name]
