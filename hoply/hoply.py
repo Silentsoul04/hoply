@@ -163,7 +163,7 @@ class Transaction(HoplyBase):
 
 
 def transactional(func):
-    """Run query in a thread
+    """Run query in a transaction
 
     This will start when appropriate a transaction.  This can be
     composed, functions decorated with transactional can call other
