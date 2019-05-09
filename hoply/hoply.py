@@ -200,9 +200,6 @@ def transactional(func):
             args[index] = tr = Transaction(db_or_tr)
 
             try:
-                # func is mix of IO and CPU but because wiredtiger
-                # doesn't work in read-write multiprocessing context,
-                # fallback to threads.
                 out = func(*args, **kwargs)
             except Exception:
                 tr._hoply._cnx.rollback()
