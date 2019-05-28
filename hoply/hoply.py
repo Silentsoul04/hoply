@@ -10,8 +10,8 @@ from itertools import permutations
 
 from immutables import Map
 
-from fdb.tuple import pack
-from fdb.tuple import unpack
+from hoply.tuple import pack
+from hoply.tuple import unpack
 from hoply.indices import compute_indices
 
 
@@ -199,7 +199,7 @@ def transactional(func):
         else:
             args = list(args)
             args[index] = tr = Transaction(db_or_tr)
-
+            tr._hoply._cnx.begin()
             try:
                 out = func(*args, **kwargs)
             except Exception:

@@ -20,26 +20,32 @@ class WiredTigerConnexion(HoplyBase):
         self._logging = logging
 
         # init wiredtiger
-        config = "create,log=(enabled=true)" if self._logging else "create"
-        self._wiredtiger = wiredtiger_open(self._path, config)
-        self._session = self._wiredtiger.open_session()
+        config = (
+            "create,log=(enabled=true,file_max=512MB),cache_size=1024MB"
+            if self._logging
+            else "create"
+        )
+        self._cnx = wiredtiger_open(self._path, config)
+        self._session = self._cnx.open_session()
 
     def init(self, table):
-        self._cnx._session.create(table, "key_format=u,value_format=u")
+        self._session.create(table, "key_format=u,value_format=u")
 
     def close(self):
-        self._wiredtiger.close()
+        self._cnx.close()
 
     # transaction
 
     def begin(self):
-        return self._session.transaction_begin()
+        return self._session.begin_transaction()
 
     def commit(self):
-        return self._session.transaction_commit()
+        self._session.commit_transaction()
+        self._session.reset()
 
     def rollback(self):
-        return self._session.transaction_rollback()
+        self._session.rollback_transaction()
+        self._session.reset()
 
     def __enter__(self):
         return self
