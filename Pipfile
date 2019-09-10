@@ -25,6 +25,9 @@ rope = "*"
 jedi = "*"
 pylama = "*"
 guzzle-sphinx-theme = "*"
+daiquiri = "*"
+requests = "*"
+lxml = "*"
 
 [requires]
 python_version = "3.7"
