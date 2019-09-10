@@ -1,35 +1,27 @@
 #!/usr/bin/env python3
 import sys
+import time
 from uuid import uuid4
 
 import hoply
 from hoply.okvs.wiredtiger import WiredTiger
 
 import requests
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWebKitWidgets import *
+
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
 
 
-class Render(QWebPage):
-
-    def __init__(self, url):
-        self.app = QApplication(sys.argv)
-        QWebPage.__init__(self)
-        self.loadFinished.connect(self._loadFinished)
-        self.mainFrame().load(QUrl(url))
-        self.app.exec_()
-
-    def _loadFinished(self, result):
-        self.frame = self.mainFrame()
-        self.app.quit()
+options = Options()
+options.headless = True
+driver = webdriver.Firefox(options=options, executable_path='./geckodriver')
 
 
 def url2html(url):
-    r = Render(url)
-    result = r.frame.toHtml()
-    return str(result)
+    driver.get(url)
+    time.sleep(1)
+    out = driver.page_source
+    return out
 
 
 def make_uid():
