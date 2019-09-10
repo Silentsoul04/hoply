@@ -44,6 +44,8 @@ with WiredTiger("wt") as storage:
             print("{} / {}".format(uid, maxitem))
             url = "https://hacker-news.firebaseio.com/v0/item/{}.json".format(uid)
             item = requests.get(url).json()
+            if not item:
+                continue
             # add item to database
             for key, value in item.items():
                 if isinstance(value, list):
