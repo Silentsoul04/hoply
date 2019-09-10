@@ -34,7 +34,7 @@ triplestore = hoply.open("movielens", prefix=[0], items=triplestore)
 
 if sys.argv == 2:
     maxitem = int(sys.argv[1])
-    print('restarting from {}'.format(maxitem))
+    print("restarting from {}".format(maxitem))
 else:
     maxitem = requests.get("https://hacker-news.firebaseio.com/v0/maxitem.json").json()
 
@@ -72,4 +72,4 @@ with WiredTiger("wt") as storage:
                         html = url2html(url)
                         triplestore.add(tr, uid, "url/html", html)
         except Exception:
-            print('> failed!')
+            print("> failed!")
