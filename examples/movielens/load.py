@@ -1,24 +1,33 @@
 #!/usr/bin/env python3
+from uuid import uuid4
 from csv import DictReader
 
 import hoply
-import ujson
+from hoply.okvs.wiredtiger import WiredTiger
 
 
-with hoply.open('data/wt') as db:
+def make_uid():
+    return uuid4().hex
+
+
+triplestore = ('subject', 'predicate', 'object')
+triplestore = hoply.open('movielens', prefix=[0], items=triplestore)
+
+
+with WiredTiger('data/wt') as storage:
     with open('data/ml-20m/movies.csv') as f:
         movies = DictReader(f)
-        with db.transaction():
+        with hoply.transaction(storage) as tr:
             for movie in movies:
                 movieId = int(movie['movieId'])
                 genres = movie['genres'].split('|')
                 title = movie['title']
                 # add it
-                uid = hoply.uid()
-                db.add(uid, 'movie/movieId', movieId)
-                db.add(uid, 'movie/title', title)
+                uid = make_uid()
+                triplestore.add(tr, uid, 'movie/movieId', movieId)
+                triplestore.add(tr, uid, 'movie/title', title)
                 for genre in genres:
-                    db.add(uid, 'movie/genre', genre)
+                    triplestore.add(tr, uid, 'movie/genre', genre)
 
     with open('data/ml-20m/ratings.csv') as f:
         ratings = DictReader(f)
@@ -27,14 +36,14 @@ with hoply.open('data/wt') as db:
                 print(index)
                 if index == 500_000:
                     break
-            with db.transaction():
+            with hoply.transaction(storage) as tr:
                 userId = int(rating['userId'])
                 movieId = int(rating['movieId'])
                 timestamp = int(rating['timestamp'])
                 rating = float(rating['rating'])
                 # add it
-                uid = hoply.uid()
-                db.add(uid, 'rating/userId', userId)
-                db.add(uid, 'rating/movieId', movieId)
-                db.add(uid, 'rating/rating', rating)
-                db.add(uid, 'rating/timestamp', timestamp)
+                uid = make_uid()
+                triplestore.add(tr, uid, 'rating/userId', userId)
+                triplestore.add(tr, uid, 'rating/movieId', movieId)
+                triplestore.add(tr, uid, 'rating/rating', rating)
+                triplestore.add(tr, uid, 'rating/timestamp', timestamp)
