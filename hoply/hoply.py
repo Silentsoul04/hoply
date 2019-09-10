@@ -119,7 +119,7 @@ class Hoply(HoplyBase):
         prefix = list(pattern[i] for i in index if not isinstance(pattern[i], Variable))
         prefix = self._prefix + [subspace] + prefix
         for key, _ in transaction.prefix(pack(prefix)):
-            items = unpack(key)[len(self._prefix) + 1:]
+            items = unpack(key)[len(self._prefix) + 1 :]
             # re-order the items
             items = tuple(items[index.index(i)] for i in range(len(self._items)))
             bindings = seed
