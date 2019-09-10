@@ -14,7 +14,7 @@ from selenium.webdriver.firefox.options import Options
 
 options = Options()
 options.headless = True
-driver = webdriver.Firefox(options=options, executable_path='./geckodriver')
+driver = webdriver.Firefox(options=options, executable_path="./geckodriver")
 
 
 def url2html(url):
@@ -28,21 +28,21 @@ def make_uid():
     return uuid4().hex
 
 
-triplestore = ('subject', 'predicate', 'object')
-triplestore = hoply.open('movielens', prefix=[0], items=triplestore)
+triplestore = ("subject", "predicate", "object")
+triplestore = hoply.open("movielens", prefix=[0], items=triplestore)
 
 
 if sys.argv == 2:
     maxitem = int(sys.argv[1])
 else:
-    maxitem = requests.get('https://hacker-news.firebaseio.com/v0/maxitem.json').json()
+    maxitem = requests.get("https://hacker-news.firebaseio.com/v0/maxitem.json").json()
 
 
-with WiredTiger('wt') as storage:
+with WiredTiger("wt") as storage:
     for uid in range(maxitem, 0, -1):
         with hoply.transaction(storage) as tr:
-            print('{} / {}'.format(uid, maxitem))
-            url = 'https://hacker-news.firebaseio.com/v0/item/{}.json'.format(uid)
+            print("{} / {}".format(uid, maxitem))
+            url = "https://hacker-news.firebaseio.com/v0/item/{}.json".format(uid)
             item = requests.get(url).json()
             # add item to database
             for key, value in item.items():
@@ -58,7 +58,7 @@ with WiredTiger('wt') as storage:
             # rendering we need a real browser to fetch the content of
             # the page.
             try:
-                url = item['url']
+                url = item["url"]
             except KeyError:
                 pass
             else:
@@ -66,4 +66,4 @@ with WiredTiger('wt') as storage:
                 response = requests.head(url)
                 if response.status_code == 200:
                     html = url2html(url)
-                    triplestore.add(tr, uid, 'url/html', html)
+                    triplestore.add(tr, uid, "url/html", html)
