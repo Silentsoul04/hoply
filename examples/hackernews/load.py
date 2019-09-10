@@ -32,7 +32,7 @@ triplestore = ("subject", "predicate", "object")
 triplestore = hoply.open("movielens", prefix=[0], items=triplestore)
 
 
-if sys.argv == 2:
+if len(sys.argv) == 2:
     maxitem = int(sys.argv[1])
     print("restarting from {}".format(maxitem))
 else:
