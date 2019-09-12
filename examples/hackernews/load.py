@@ -4,6 +4,7 @@ import time
 
 import hoply
 from hoply.okvs.wiredtiger import WiredTiger
+import requests
 
 
 triplestore = ("subject", "predicate", "object")
