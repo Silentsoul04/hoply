@@ -27,7 +27,7 @@ async def dump(uid, session):
         print(item)
 
 
-COUNT = 10_000
+COUNT = 10000
 
 
 async def crawler(session):
