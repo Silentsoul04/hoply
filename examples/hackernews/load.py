@@ -1,14 +1,8 @@
 #!/usr/bin/env python3
+import asyncio
+import aiohttp
 import sys
-import time
-
-import hoply
-from hoply.okvs.wiredtiger import WiredTiger
 import requests
-
-
-triplestore = ("subject", "predicate", "object")
-triplestore = hoply.open("movielens", prefix=[0], items=triplestore)
 
 
 if len(sys.argv) == 2:
@@ -18,23 +12,48 @@ else:
     maxitem = requests.get("https://hacker-news.firebaseio.com/v0/maxitem.json").json()
 
 
-with WiredTiger("wt") as storage:
-    for uid in range(maxitem, 0, -1):
+GENERATOR = iter(range(maxitem))
+LOCK_STDOUT = asyncio.Lock()
+LOCK_GENERATOR = asyncio.Lock()
+
+
+async def dump(uid, session):
+    url = "https://hacker-news.firebaseio.com/v0/item/{}.json".format(uid)
+    async with session.get(url) as response:
+        item = await response.json()
+    if not item:
+        return
+    async with LOCK_STDOUT:
+        print(item)
+
+
+COUNT = 10_000
+
+
+async def crawler(session):
+    while True:
         try:
-            with hoply.transaction(storage) as tr:
-                print("{} / {}".format(uid, maxitem))
-                url = "https://hacker-news.firebaseio.com/v0/item/{}.json".format(uid)
-                item = requests.get(url).json()
-                if not item:
-                    continue
-                # add item to database
-                for key, value in item.items():
-                    if isinstance(value, list):
-                        for element in value:
-                            triplestore.add(tr, uid, key, element)
-                    elif isinstance(value, dict):
-                        raise NotImplementedError()
-                    else:
-                        triplestore.add(tr, uid, key, value)
-        except Exception:
-            print("> failed!")
+            async with LOCK_GENERATOR:
+                uid = next(GENERATOR)
+            await dump(uid, session)
+        except StopIteration:
+            global COUNT
+            COUNT -= 1
+            return
+
+
+async def main():
+    session = aiohttp.ClientSession()
+
+    for _ in range(COUNT):
+        asyncio.create_task(crawler(session))
+
+    while True:
+        if COUNT == 0:
+            session.close()
+            return
+        else:
+            await asyncio.sleep(1)
+
+
+asyncio.run(main())

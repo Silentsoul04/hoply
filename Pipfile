@@ -29,6 +29,7 @@ guzzle-sphinx-theme = "*"
 daiquiri = "*"
 requests = "*"
 lxml = "*"
+aiohttp = "*"
 
 [requires]
 python_version = "3.7"
