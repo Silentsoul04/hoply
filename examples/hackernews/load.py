@@ -14,28 +14,30 @@ else:
 
 
 GENERATOR = iter(range(maxitem))
-LOCK_STDOUT = asyncio.Lock()
-LOCK_GENERATOR = asyncio.Lock()
 
 
 async def dump(uid, session):
-    url = "https://hacker-news.firebaseio.com/v0/item/{}.json".format(uid)
-    async with session.get(url) as response:
-        item = await response.json()
-    if not item:
-        return
-    async with LOCK_STDOUT:
-        print(json.dumps(item, ensure_ascii=False))
+    for _ in range(5):
+        try:
+            url = "https://hacker-news.firebaseio.com/v0/item/{}.json".format(uid)
+            async with session.get(url) as response:
+                item = await response.json()
+            if not item:
+                return
+            print(json.dumps(item, ensure_ascii=False))
+        except asyncio.TimeoutError:
+            continue
+        else:
+            return
 
 
-COUNT = 10000
+COUNT = 5000
 
 
 async def crawler(session):
     while True:
         try:
-            async with LOCK_GENERATOR:
-                uid = next(GENERATOR)
+            uid = next(GENERATOR)
             await dump(uid, session)
         except StopIteration:
             global COUNT
