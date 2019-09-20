@@ -3,6 +3,7 @@ import asyncio
 import aiohttp
 import sys
 import requests
+import json
 
 
 if len(sys.argv) == 2:
@@ -24,7 +25,7 @@ async def dump(uid, session):
     if not item:
         return
     async with LOCK_STDOUT:
-        print(item)
+        print(json.dump(item, ensure_ascii=False))
 
 
 COUNT = 10000
