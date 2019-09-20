@@ -25,7 +25,7 @@ async def dump(uid, session):
     if not item:
         return
     async with LOCK_STDOUT:
-        print(json.dump(item, ensure_ascii=False))
+        print(json.dumps(item, ensure_ascii=False))
 
 
 COUNT = 10000
