@@ -111,7 +111,7 @@ for index, line in enumerate(Path(filename).open()):
                 html = url2html_with_retry(url)
             encoded = base64.b64encode(html.encode("utf-8"))
             encoded = encoded.decode("ascii")
-            print("{}\t{}".format(item['url'], encoded))
+            print("{}\t{}".format(item["url"], encoded))
     except TimeoutException:
         eprint("{}: give up on {}".format(index, url))
     except Exception:
