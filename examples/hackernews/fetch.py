@@ -36,8 +36,13 @@ def url2html(url):
 
 if len(sys.argv) == 2:
     filename = sys.argv[1]
+    start = 0
+elif len(sys.argv) == 3:
+    filename = sys.argv[1]
+    start = int(sys.argv[2])
+    eprint("starting with index at {}".format(start))
 else:
-    print("Usage: fetch.py hackernews.jsonl")
+    eprint("Usage: fetch.py hackernews.jsonl")
 
 
 WAYBACK = "http://archive.org/wayback/available"
@@ -47,16 +52,21 @@ def time2timestamp(integer):
     return datetime.fromtimestamp(integer).strftime("%Y%m%d")
 
 
-for line in Path(filename).open():
+for index, line in enumerate(Path(filename).open()):
+    if index < start:
+        continue
     if "url" not in line:
+        # OPTIM: skip things that have no chance to be a external
+        # link, avoid to deserialize with json.loads
         continue
     try:
         item = json.loads(line)
         uid = item["id"]
+
         try:
             url = item["url"]
         except KeyError:
-            eprint("not a story with url: {}".format(uid))
+            eprint("{}: not a story with url: {}".format(index, uid))
         else:
             # always try first to fetch from the wayback machine
             timestamp = time2timestamp(item["time"])
@@ -70,18 +80,28 @@ for line in Path(filename).open():
                 and response["archived_snapshots"]["closest"]["status"] == "200"
             ):
                 url = response["archived_snapshots"]["closest"]["url"]
-                eprint("wayback machine works with {} at {}".format(uid, url))
+                eprint("{}: wayback machine works with {} at {}".format(index, uid, url))
             else:
                 response = requests.head(url, allow_redirects=True)
                 if response.status_code != 200:
-                    eprint("skip {} {}".format(uid, url))
+                    eprint("{}: skip {} {}".format(index, uid, url))
                     continue
             # good, let's download with selenium
-            html = url2html(url)
+            try:
+                html = url2html(url)
+            except TimeoutException:
+                eprint("{}: timeout with {}".format(index, uid))
+                url = item['url']
+                eprint("{}: fallback to direct download".format(index))
+                response = requests.head(url, allow_redirects=True)
+                if response.status_code != 200:
+                    eprint("{}: skip {} {}".format(index, uid, url))
+                    continue
+                html = url2html(url)
             encoded = base64.b64encode(html.encode("utf-8"))
             encoded = encoded.decode("ascii")
             print("{}\t{}".format(url, encoded))
     except TimeoutException:
-        eprint("timeout with {}".format(uid))
+        eprint("{}: give up on {}".format(index, url))
     except Exception:
-        eprint("some error")
+        eprint("{}: some error".format(index))
