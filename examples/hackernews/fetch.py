@@ -44,11 +44,11 @@ WAYBACK = "http://archive.org/wayback/available"
 
 
 def time2timestamp(integer):
-    return datetime.fromtimestamp(integer).strftime('%Y%m%d')
+    return datetime.fromtimestamp(integer).strftime("%Y%m%d")
 
 
 for line in Path(filename).open():
-    if 'url' not in line:
+    if "url" not in line:
         continue
     try:
         item = json.loads(line)
@@ -59,19 +59,18 @@ for line in Path(filename).open():
             eprint("not a story with url: {}".format(uid))
         else:
             # always try first to fetch from the wayback machine
-            timestamp = time2timestamp(item['time'])
-            params = dict(
-                timestamp=timestamp,
-                url=url,
-            )
+            timestamp = time2timestamp(item["time"])
+            params = dict(timestamp=timestamp, url=url)
             response = requests.get(WAYBACK, params=params)
             response = response.json()
             # check is available
-            if (response['archived_snapshots'] and
-                response['archived_snapshots']['closest']['available'] and
-                response['archived_snapshots']['closest']['status'] == "200"):
-                url = response['archived_snapshots']['closest']['url']
-                eprint('wayback machine works with {} at {}'.format(uid, url))
+            if (
+                response["archived_snapshots"]
+                and response["archived_snapshots"]["closest"]["available"]
+                and response["archived_snapshots"]["closest"]["status"] == "200"
+            ):
+                url = response["archived_snapshots"]["closest"]["url"]
+                eprint("wayback machine works with {} at {}".format(uid, url))
             else:
                 response = requests.head(url, allow_redirects=True)
                 if response.status_code != 200:
@@ -85,4 +84,4 @@ for line in Path(filename).open():
     except TimeoutException:
         eprint("timeout with {}".format(uid))
     except Exception:
-        eprint('some error')
+        eprint("some error")
