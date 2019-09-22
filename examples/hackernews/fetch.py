@@ -40,7 +40,7 @@ for line in Path(filename).open():
             response = requests.head(url)
             if response.status_code == 200:
                 html = url2html(url)
-                encoded = base64.b64encode(html.encode('utf-8'))
-                print('{}\t{}'.format(url, encoded))
+                encoded = base64.b64encode(html.encode("utf-8"))
+                print("{}\t{}".format(url, encoded))
     except Exception:
         pass
