@@ -34,6 +34,15 @@ def url2html(url):
     return out
 
 
+def url2html_with_retry(url):
+    for _ in range(5):
+        try:
+            return url2html(url)
+        except TimeoutException:
+            continue
+    raise TimeoutException()
+
+
 if len(sys.argv) == 2:
     filename = sys.argv[1]
     start = 0
@@ -88,7 +97,7 @@ for index, line in enumerate(Path(filename).open()):
                     continue
             # good, let's download with selenium
             try:
-                html = url2html(url)
+                html = url2html_with_retry(url)
             except TimeoutException:
                 eprint("{}: timeout with {}".format(index, uid))
                 url = item['url']
@@ -97,7 +106,7 @@ for index, line in enumerate(Path(filename).open()):
                 if response.status_code != 200:
                     eprint("{}: skip {} {}".format(index, uid, url))
                     continue
-                html = url2html(url)
+                html = url2html_with_retry(url)
             encoded = base64.b64encode(html.encode("utf-8"))
             encoded = encoded.decode("ascii")
             print("{}\t{}".format(url, encoded))
