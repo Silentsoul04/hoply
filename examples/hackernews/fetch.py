@@ -14,6 +14,8 @@ options = Options()
 options.headless = True
 driver = webdriver.Firefox(options=options, executable_path="./geckodriver")
 
+def eprint(message):
+    print(message, file=sys.stderr)
 
 def url2html(url):
     driver.get(url)
@@ -31,16 +33,20 @@ else:
 for line in Path(filename).open():
     try:
         item = json.loads(line)
+        uid = item["id"]
         try:
             url = item["url"]
         except KeyError:
-            pass
+            eprint("not a story with url: {}".format(uid))
         else:
             # check the page still exists and that is not a redirect
             response = requests.head(url)
             if response.status_code == 200:
                 html = url2html(url)
                 encoded = base64.b64encode(html.encode("utf-8"))
+                encoded = encoded.decode('ascii')
                 print("{}\t{}".format(url, encoded))
+            else:
+                eprint("not http status code 200: {}".format(uid))
     except Exception:
-        pass
+        eprint("some error")
