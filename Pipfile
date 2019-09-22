@@ -30,6 +30,7 @@ daiquiri = "*"
 requests = "*"
 lxml = "*"
 aiohttp = "*"
+timeout-decorator = "*"
 
 [requires]
 python_version = "3.7"

@@ -8,15 +8,23 @@ from pathlib import Path
 
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
+import timeout_decorator
 
 
 options = Options()
 options.headless = True
 driver = webdriver.Firefox(options=options, executable_path="./geckodriver")
 
+
 def eprint(message):
     print(message, file=sys.stderr)
 
+
+class TimeoutException(Exception):
+    pass
+
+
+@timeout_decorator.timeout(5, timeout_exception=TimeoutException)
 def url2html(url):
     driver.get(url)
     time.sleep(1)
@@ -48,5 +56,7 @@ for line in Path(filename).open():
                 print("{}\t{}".format(url, encoded))
             else:
                 eprint("not http status code 200: {}".format(uid))
+    except TimeoutException:
+        eprint("timeout with {}".format(uid))
     except Exception:
         eprint("some error")
