@@ -52,7 +52,7 @@ for line in Path(filename).open():
             if response.status_code == 200:
                 html = url2html(url)
                 encoded = base64.b64encode(html.encode("utf-8"))
-                encoded = encoded.decode('ascii')
+                encoded = encoded.decode("ascii")
                 print("{}\t{}".format(url, encoded))
             else:
                 eprint("not http status code 200: {}".format(uid))
