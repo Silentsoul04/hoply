@@ -89,7 +89,9 @@ for index, line in enumerate(Path(filename).open()):
                 and response["archived_snapshots"]["closest"]["status"] == "200"
             ):
                 url = response["archived_snapshots"]["closest"]["url"]
-                eprint("{}: wayback machine works with {} at {}".format(index, uid, url))
+                eprint(
+                    "{}: wayback machine works with {} at {}".format(index, uid, url)
+                )
             else:
                 response = requests.head(url, allow_redirects=True)
                 if response.status_code != 200:
@@ -100,7 +102,7 @@ for index, line in enumerate(Path(filename).open()):
                 html = url2html_with_retry(url)
             except TimeoutException:
                 eprint("{}: timeout with {}".format(index, uid))
-                url = item['url']
+                url = item["url"]
                 eprint("{}: fallback to direct download".format(index))
                 response = requests.head(url, allow_redirects=True)
                 if response.status_code != 200:
