@@ -101,18 +101,24 @@ for index, line in enumerate(Path(filename).open()):
             try:
                 html = url2html_with_retry(url)
             except TimeoutException:
+                # wayback machine failed, try direct download
                 eprint("{}: timeout with {}".format(index, uid))
                 url = item["url"]
                 eprint("{}: fallback to direct download".format(index))
                 response = requests.head(url, allow_redirects=True)
                 if response.status_code != 200:
+                    # the page is definitly gone
                     eprint("{}: skip {} {}".format(index, uid, url))
                     continue
-                html = url2html_with_retry(url)
+                try:
+                    html = url2html_with_retry(url)
+                except TimeoutException:
+                    # direct download fail too :(
+                    eprint("{}: give up on {}".format(index, url))
+                    continue
+            # at last, print on stdout
             encoded = base64.b64encode(html.encode("utf-8"))
             encoded = encoded.decode("ascii")
             print("{}\t{}".format(item["url"], encoded))
-    except TimeoutException:
-        eprint("{}: give up on {}".format(index, url))
     except Exception:
         eprint("{}: some error".format(index))
