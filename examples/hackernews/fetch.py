@@ -120,5 +120,5 @@ for index, line in enumerate(Path(filename).open()):
             encoded = base64.b64encode(html.encode("utf-8"))
             encoded = encoded.decode("ascii")
             print("{}\t{}".format(item["url"], encoded))
-    except Exception:
-        eprint("{}: some error".format(index))
+    except Exception as e:
+        eprint("{}: general exception: {}".format(index, str(e)))
