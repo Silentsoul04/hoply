@@ -20,30 +20,31 @@ elif len(sys.argv) == 2:
     apfrom = None
     eprint("Starting '{}' from scratch".format(base_url))
 else:
-    eprint('Usage: ./dump.py BASE_URL [FROM]')
+    eprint("Usage: ./dump.py BASE_URL [FROM]")
     sys.exit(1)
 
-if not base_url.endswith('/'):
-    base_url += '/'
+if not base_url.endswith("/"):
+    base_url += "/"
 
-WIKI_ALL_PAGES = '{}w/api.php?action=query&list=allpages&format=json&aplimit=500&apfrom={}'
-WIKI_HTML = '{}api/rest_v1/page/html/{}'
-WIKI_METADATA = '{}api/rest_v1/page/metadata/{}'
-
+WIKI_ALL_PAGES = (
+    "{}w/api.php?action=query&list=allpages&format=json&aplimit=500&apfrom={}"
+)
+WIKI_HTML = "{}api/rest_v1/page/html/{}"
+WIKI_METADATA = "{}api/rest_v1/page/metadata/{}"
 
 
 async def iter_titles(session):
     global apfrom
-    apfrom_ = apfrom if apfrom is not None else ''
+    apfrom_ = apfrom if apfrom is not None else ""
     apfrom = apfrom_
     while True:
         url = WIKI_ALL_PAGES.format(base_url, apfrom)
         async with session.get(url) as response:
             items = await response.json()
-            for item in items['query']['allpages']:
-                yield item['title']
+            for item in items["query"]["allpages"]:
+                yield item["title"]
             # continue?
-            apfrom = items.get('continue', {}).get('apcontinue')
+            apfrom = items.get("continue", {}).get("apcontinue")
             if apfrom is None:
                 break
 
