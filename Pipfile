@@ -31,6 +31,8 @@ requests = "*"
 lxml = "*"
 aiohttp = "*"
 timeout-decorator = "*"
+fuzzyhash = "*"
+python-levenshtein = "*"
 
 [requires]
 python_version = "3.7"
