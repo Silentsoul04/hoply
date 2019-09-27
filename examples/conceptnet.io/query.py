@@ -26,7 +26,7 @@ with WiredTiger(path) as storage:
             prefix = query[0:count]
             prefix = pack((prefix,))
             # strip the very last \x00 byte
-            prefix = prefix[0:len(prefix) - 1]
+            prefix = prefix[0 : len(prefix) - 1]
             for key, _ in tr.prefix(prefix):
                 concept, = unpack(key)
                 candidates.add(concept)
@@ -36,7 +36,9 @@ with WiredTiger(path) as storage:
 
 distances = Counter()
 for concept in candidates:
-    distance = fuzzyhash.distance(fuzzyhash.fuzzyhash(query), fuzzyhash.fuzzyhash(concept))
+    distance = fuzzyhash.distance(
+        fuzzyhash.fuzzyhash(query), fuzzyhash.fuzzyhash(concept)
+    )
     distances[concept] = -distance
 
 concepts = [c for (c, s) in distances.items()]
@@ -50,4 +52,4 @@ for concept in concepts:
     print(concept)
 
 
-print('\n\nTime spent: ', end - start)
+print("\n\nTime spent: ", end - start)

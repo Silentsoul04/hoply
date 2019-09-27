@@ -10,8 +10,8 @@ from hoply.tuple import unpack
 with WiredTiger(sys.argv[1]) as storage:
     with open(sys.argv[2]) as f:
         for index, line in enumerate(f):
-            if index % 10_000 == 0:
+            if index % 10000 == 0:
                 print(index)
             concept = line.strip()
             with h.transaction(storage) as tr:
-                tr.add(pack((concept,)), b'')
+                tr.add(pack((concept,)), b"")
