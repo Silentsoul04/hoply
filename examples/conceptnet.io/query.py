@@ -1,11 +1,8 @@
 import time
 import sys
-from collections import Counter
 
 import hoply as h
 from hoply.okvs.wiredtiger import WiredTiger
-from fuzzyhash import simhash
-import fuzzyhash
 from hoply.tuple import pack
 from hoply.tuple import unpack
 from Levenshtein import distance as levenshtein
@@ -26,25 +23,15 @@ with WiredTiger(path) as storage:
             prefix = query[0:count]
             prefix = pack((prefix,))
             # strip the very last \x00 byte
-            prefix = prefix[0 : len(prefix) - 1]
+            prefix = prefix[0:len(prefix) - 1]
             for key, _ in tr.prefix(prefix):
                 concept, = unpack(key)
                 candidates.add(concept)
             if len(candidates) > (LIMIT * 10):
                 break
 
-
-distances = Counter()
-for concept in candidates:
-    distance = fuzzyhash.distance(
-        fuzzyhash.fuzzyhash(query), fuzzyhash.fuzzyhash(concept)
-    )
-    distances[concept] = -distance
-
-concepts = [c for (c, s) in distances.items()]
-
-concepts.sort(key=lambda x: levenshtein(x, query))
-concepts = concepts[0:LIMIT]
+concepts = sorted(candidates, key=lambda x: levenshtein(x, query))
+concepts = concepts[:LIMIT]
 
 end = time.time()
 
