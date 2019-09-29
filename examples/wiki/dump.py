@@ -54,7 +54,15 @@ async def dump(title, session):
         try:
             # html
             url = WIKI_HTML.format(base_url, title)
-            html = await session.get(url)
+            for i in range(5):
+                try:
+                    html = await session.get(url)
+                except:
+                    continue
+                else:
+                    break
+            else:
+                continue
             html = await html.text()
             # metadata
             url = WIKI_METADATA.format(base_url, title)
