@@ -54,15 +54,7 @@ async def dump(title, session):
         try:
             # html
             url = WIKI_HTML.format(base_url, title)
-            for i in range(5):
-                try:
-                    html = await session.get(url)
-                except:
-                    continue
-                else:
-                    break
-            else:
-                continue
+            html = await session.get(url)
             html = await html.text()
             # metadata
             url = WIKI_METADATA.format(base_url, title)
@@ -70,20 +62,19 @@ async def dump(title, session):
             metadata = await metadata.json()
             out = dict(title=title, html=html, metadata=metadata)
             print(json.dumps(out))
-        except asyncio.TimeoutError:
+        except:
             continue
-        else:
-            return
 
 
 COUNT = 50
 
 
-async def crawler(session, generator):
+async def crawler(lock, session, generator):
     while True:
         try:
-            title = generator.__anext__()
-            title = await title
+            async with lock:
+                title = generator.__anext__()
+                title = await title
             await dump(title, session)
         except StopAsyncIteration:
             global COUNT
@@ -93,11 +84,11 @@ async def crawler(session, generator):
 
 async def main():
     session = aiohttp.ClientSession()
-
+    lock = asyncio.Lock()
     generator = iter_titles(session)
 
     for _ in range(COUNT):
-        asyncio.create_task(crawler(session, generator))
+        asyncio.create_task(crawler(lock, session, generator))
 
     while True:
         if COUNT == 0:
