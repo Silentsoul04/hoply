@@ -23,7 +23,7 @@ with WiredTiger(path) as storage:
             prefix = query[0:count]
             prefix = pack((prefix,))
             # strip the very last \x00 byte
-            prefix = prefix[0:len(prefix) - 1]
+            prefix = prefix[0 : len(prefix) - 1]
             for key, _ in tr.prefix(prefix):
                 concept, = unpack(key)
                 candidates.add(concept)
