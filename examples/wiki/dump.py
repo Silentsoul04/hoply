@@ -68,7 +68,7 @@ async def dump(title, session):
             return
 
 
-COUNT = 3
+COUNT = 50
 
 
 async def crawler(session, generator):
