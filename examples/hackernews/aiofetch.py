@@ -69,9 +69,12 @@ async def dump(item, session):
                 # at last, print on stdout
                 async with timeout(2):
                     async with session.get(url, verify_ssl=False) as response:
-                        body = await response.read()
-                        content_type = response.content_type
-                        charset = response.charset
+                        if response.status == 200:
+                            body = await response.read()
+                            content_type = response.content_type
+                            charset = response.charset
+                        else:
+                            return
                 encoded = base64.b64encode(body)
                 encoded = encoded.decode("ascii")
                 print(
