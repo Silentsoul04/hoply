@@ -19,13 +19,13 @@ def eprint(message):
     print(message, file=sys.stderr)
 
 
-eprint('>>> input: {}'.format(filename))
+eprint(">>> input: {}".format(filename))
 
 
 def iter_urls(session):
     with open(filename) as f:
         for line in f:
-            if 'url' not in line:
+            if "url" not in line:
                 continue
             item = json.loads(line)
             yield item
@@ -64,7 +64,7 @@ async def dump(item, session):
                     url = response["archived_snapshots"]["closest"]["url"]
                 else:
                     # fallback
-                    url = item['url']
+                    url = item["url"]
 
                 # at last, print on stdout
                 async with timeout(2):
@@ -74,14 +74,16 @@ async def dump(item, session):
                         charset = response.charset
                 encoded = base64.b64encode(body)
                 encoded = encoded.decode("ascii")
-                print('{}\t{}\t{}\t{}'.format(item['url'], content_type, charset, encoded))
+                print(
+                    "{}\t{}\t{}\t{}".format(item["url"], content_type, charset, encoded)
+                )
             except Exception as exc:
                 continue
             else:
                 return
 
 
-COUNT = 10_000
+COUNT = 10000
 
 
 async def crawler(session, generator):
