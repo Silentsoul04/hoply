@@ -34,7 +34,7 @@ WIKI_HTML = "{}api/rest_v1/page/html/{}"
 WIKI_METADATA = "{}api/rest_v1/page/metadata/{}"
 
 
-VALID = set(string.punctuation) + set('qwertyuiopasdfghjklzxcvbnm _')
+VALID = set(string.punctuation) + set("qwertyuiopasdfghjklzxcvbnm _")
 
 
 async def iter_titles(session):
