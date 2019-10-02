@@ -5,6 +5,7 @@ import sys
 import requests
 import json
 import sys
+import string
 
 
 def eprint(message):
@@ -33,6 +34,9 @@ WIKI_HTML = "{}api/rest_v1/page/html/{}"
 WIKI_METADATA = "{}api/rest_v1/page/metadata/{}"
 
 
+VALID = set(string.punctuation) + set('qwertyuiopasdfghjklzxcvbnm _')
+
+
 async def iter_titles(session):
     global apfrom
     apfrom_ = apfrom if apfrom is not None else ""
@@ -42,7 +46,12 @@ async def iter_titles(session):
         async with session.get(url) as response:
             items = await response.json()
             for item in items["query"]["allpages"]:
-                yield item["title"]
+                title = item["title"]
+                surface = set(title) - VALID
+                if surface:
+                    continue
+                else:
+                    yield item["title"]
             # continue?
             apfrom = items.get("continue", {}).get("apcontinue")
             if apfrom is None:
