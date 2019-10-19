@@ -22,9 +22,7 @@ setup(
     install_requires=[
         "cffi==1.12.2",
         "immutables==0.6",
-        "daiquiri==1.5.0",
         "sortedcontainers==2.0.5",
-        "foundationdb",
     ],
     classifiers=[
         "Intended Audience :: Developers",
