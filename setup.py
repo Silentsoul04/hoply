@@ -19,11 +19,7 @@ setup(
     packages=find_packages(),
     zip_safe=False,
     license="GPLv2 or GPLv3",
-    install_requires=[
-        "cffi==1.12.2",
-        "immutables==0.6",
-        "sortedcontainers==2.0.5",
-    ],
+    install_requires=["cffi==1.12.2", "immutables==0.6", "sortedcontainers==2.0.5"],
     classifiers=[
         "Intended Audience :: Developers",
         "Topic :: Software Development",
