@@ -32,10 +32,10 @@ ChangeLog
 0.14.0
 ------
 
-- Move to a new storage backend API inspired from
-  [SRFI-167](https://srfi.schemers.org/srfi-167/) in particular expose
-  a `prefix` argument in `Hoply` so that it is possible to hook
-  multiple abstractions to the same OKVS database.
+- Move to a new storage backend API inspired from `SRFI-167
+  <https://srfi.schemers.org/srfi-167/>`_ in particular expose a
+  `prefix` argument in `Hoply` so that it is possible to hook multiple
+  abstractions to the same OKVS database.
 
 - Replace `h.compose` with `h.select`. It might be more familiar to
   Pythonista and the result is similar to what the SPARQL `SELECT`
